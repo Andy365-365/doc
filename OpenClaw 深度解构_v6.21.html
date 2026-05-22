@@ -1,0 +1,934 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>OpenClaw 深度解构：</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    max-width: 860px; margin: 0 auto; padding: 40px 20px;
+    color: #222; line-height: 1.8; background: #fff;
+    padding-left: 50px;
+  }
+  h1 { text-align: center; margin-bottom: 30px; font-size: 24px; }
+  h2 { font-size: 20px; margin: 24px 0 12px; line-height: 1.4; }
+  h3 { font-size: 17px; margin: 20px 0 10px; }
+  h4 { font-size: 15px; margin: 16px 0 8px; }
+  .heading-anchor { visibility: hidden; }
+  h2:hover .heading-anchor, h3:hover .heading-anchor, h4:hover .heading-anchor { visibility: visible; }
+  p { margin: 12px 0; }
+  img { max-width: 100%; height: auto; display: block; margin: 16px auto; border-radius: 4px; }
+  figcaption, p[style*="text-align: center"] { text-align: center; color: #888; font-size: 13px; margin: 4px 0 16px; }
+  pre { background: #f6f6f6; padding: 16px; border-radius: 6px; overflow-x: auto; margin: 16px 0; font-size: 14px; line-height: 1.5; }
+  code { background: #f0f0f0; padding: 2px 6px; border-radius: 3px; font-size: 14px; }
+  pre code { background: none; padding: 0; }
+  table { border-collapse: collapse; width: 100%; margin: 16px 0; }
+  th, td { border: 1px solid #ddd; padding: 8px 12px; text-align: left; }
+  th { background: #f6f6f6; font-weight: 600; }
+  tr:nth-child(even) { background: #fafafa; }
+  ul, ol { padding-left: 24px; margin: 12px 0; }
+  li { margin: 4px 0; }
+  blockquote { border-left: 4px solid #0066ff; padding: 8px 16px; margin: 16px 0; background: #f8f9fa; color: #555; }
+  /* 文章发布时间 - 右对齐 */
+  .article-publish-time {
+    float: right; font-size: 12px; color: #999; font-weight: normal; margin-left: 12px;
+  }
+  /* 目录面板 */
+  #toc-wrapper {
+    position: fixed; left: 0; top: 0; width: 280px; height: 100vh;
+    transform: translateX(0); transition: transform 0.3s ease; z-index: 9999;
+  }
+  #toc-wrapper.collapsed { transform: translateX(-100%); }
+  /* 目录面板内容 */
+  #toc {
+    position: absolute; top: 0; bottom: 0; width: 100%;
+    background: #f8f9fa; border-right: 1px solid #eee;
+    overflow-y: auto; padding: 20px 16px;
+  }
+  /* 开关按钮 - 面板右上角外侧 */
+  #toc-toggle {
+    position: absolute; right: -40px; top: 16px; width: 36px; height: 36px;
+    background: #222; color: #fff; border: none; border-radius: 0 4px 4px 0;
+    cursor: pointer; font-size: 18px; z-index: 10000;
+    display: flex; align-items: center; justify-content: center;
+  }
+  #toc-toggle:hover { background: #444; }
+  #toc ul { list-style: none; padding: 0; }
+  #toc li { margin: 3px 0; }
+  #toc a { color: #0066ff; text-decoration: none; font-size: 13px; display: block; padding: 2px 4px; border-radius: 3px; }
+  #toc a:hover { background: #e8f0fe; }
+  #sources { margin-top: 40px; padding-top: 20px; border-top: 2px solid #eee; color: #999; font-size: 13px; }
+  #sources h3 { font-size: 14px; margin-bottom: 8px; }
+  #sources ul { list-style: none; padding: 0; }
+  #sources li { margin: 2px 0; }
+  #sources a { color: #0066ff; text-decoration: none; }
+  #sources a:hover { text-decoration: underline; }
+  footer { margin-top: 20px; text-align: center; color: #ccc; font-size: 12px; }
+</style>
+</head>
+<body>
+
+<div id="toc-wrapper">
+  <button id="toc-toggle" onclick="document.getElementById('toc-wrapper').classList.toggle('collapsed')">☰</button>
+  <nav id="toc">
+    <h3 style="margin:0 0 12px;font-size:15px;color:#222;line-height:1.4;">OpenClaw 深度解构：</h3>
+    <ul>
+
+    <li style="padding-left:0px;"><a href="#sec-0-1">第一部分：Agent.md</a></li>
+    <li style="padding-left:16px;"><a href="#sec-0-2">OpenClaw Agent.md总体结构</a></li>
+    <li style="padding-left:16px;"><a href="#sec-0-3">主Agent.md</a></li>
+    <li style="padding-left:0px;"><a href="#sec-1-1">第二部分 src/gateway/agent-prompt.ts</a></li>
+    <li style="padding-left:0px;"><a href="#sec-2-1">第三部分 gateway/server</a></li>
+    <li style="padding-left:16px;"><a href="#sec-2-2">1.程序结构</a></li>
+    <li style="padding-left:16px;"><a href="#sec-2-3">2.程序关系图</a></li>
+    <li style="padding-left:16px;"><a href="#sec-2-4">3.http服务层</a></li>
+    <li style="padding-left:0px;"><a href="#sec-3-1">第三部分 gateway/server</a></li>
+    <li style="padding-left:16px;"><a href="#sec-3-2">4.http-auth.ts</a></li>
+    <li style="padding-left:0px;"><a href="#sec-4-1">第三部分 gateway/server</a></li>
+    <li style="padding-left:16px;"><a href="#sec-4-2">5.hook.ts</a></li>
+    <li style="padding-left:0px;"><a href="#sec-5-1">Openclaw2026.5.4的飞书文档创建bug分析</a></li>
+    <li style="padding-left:0px;"><a href="#sec-5-2">Openclaw调用飞书插件工具的机制</a></li>
+    <li style="padding-left:0px;"><a href="#sec-5-3">根本原因：SessionKey 解析逻辑 Bug</a></li>
+    <li style="padding-left:0px;"><a href="#sec-5-4">修复方案</a></li>
+    <li style="border-top:1px solid #ddd;margin-top:12px;padding-top:8px;"><a href="#sources" style="color:#999;font-size:12px;">来源</a></li>
+    </ul>
+  </nav>
+</div>
+
+<h1>OpenClaw 深度解构：</h1>
+
+<p data-first-child="" data-pid="x0eXh_yD">Kevin</p><p data-pid="ZxbNkhR5">本系列将系统拆解 OpenClaw 的核心代码与设计思想，从整体架构到关键模块逐层深入，覆盖模型调度、<span data-search-entity="1">CLI 体系</span>、Provider 适配、<span data-search-entity="3">实时通信</span>与 Agent Runtime 等关键路径。不同于表层教程，文章聚焦“为什么这样设计”以及“如何扩展与落地”，结合最新版本演进，解析其在 Agent 时代的工程权衡与最佳实践。适合具备一定工程基础、希望真正理解大模型基础设施与 <span data-search-entity="0">Harness Engineering</span> 的开发者与技术决策者阅读。</p><hr><h2 id="sec-0-1" data-into-catalog-status="">第一部分：Agent.md<span class="article-publish-time">编辑于 2026-05-03 16:40・北京</span><a href="#sec-0-1" class="heading-anchor" style="color: rgb(204, 204, 204); margin-left: 4px; text-decoration: none;"> #</a></h2><p data-pid="nfCCzUxP">Agent.md是由开发Openclaw程序Codex、Claude Code的阅读的文件，当 AI 被要求执行任务时，它会<b>主动读取这个文件来约束自己的行为</b>。Openclaw的Agent.md采用多层结构，设计非常精妙。</p><h3 id="sec-0-2" data-into-catalog-status="">OpenClaw Agent.md总体结构<a href="#sec-0-2" class="heading-anchor" style="color: rgb(204, 204, 204); margin-left: 4px; text-decoration: none;"> #</a></h3><div class="highlight"><pre><code class="language-text">openclaw-main-20260502/
+├── AGENTS.md                                      # 根目录 - 主 AGENTS 文档
+├── docs/
+│   └── AGENTS.md                                  # 文档目录
+│   └── reference/
+│       └── templates/
+│           └── AGENTS.md                          # 文档模板
+├── ui/
+│   └── AGENTS.md                                  # UI 模块
+├── scripts/
+│   └── AGENTS.md                                  # 脚本目录
+├── extensions/
+│   ├── AGENTS.md                                  # 扩展模块根目录
+│   └── acpx/
+│       └── AGENTS.md                              # ACPX 扩展
+├── src/
+│   ├── agents/
+│   │   ├── AGENTS.md                              # Agent 核心模块
+│   │   ├── tools/
+│   │   │   └── AGENTS.md                          # Agent 工具
+│   │   └── pi-embedded-runner/
+│   │       └── run/
+│   │           └── AGENTS.md                      # Pi 嵌入式运行器
+│   ├── channels/
+│   │   ├── AGENTS.md                              # 渠道模块
+│   │   └── plugins/
+│   │       └── contracts/
+│   │           └── test-helpers/
+│   │               └── AGENTS.md                  # 渠道插件契约测试辅助
+│   ├── gateway/
+│   │   ├── AGENTS.md                              # 网关模块
+│   │   ├── protocol/
+│   │   │   └── AGENTS.md                          # 网关协议
+│   │   └── server-methods/
+│   │       └── AGENTS.md                          # 网关服务方法
+│   ├── plugins/
+│   │   └── AGENTS.md                              # 插件系统
+│   ├── plugin-sdk/
+│   │   └── AGENTS.md                              # 插件 SDK
+│   └── infra/
+│       └── outbound/
+│           └── AGENTS.md                          # 基础设施出站
+└── test/
+    └── helpers/
+        └── AGENTS.md                              # 测试辅助</code></pre></div><p class="ztext-empty-paragraph"><br></p><h3 id="sec-0-3" data-into-catalog-status="">主Agent.md<a href="#sec-0-3" class="heading-anchor" style="color: rgb(204, 204, 204); margin-left: 4px; text-decoration: none;"> #</a></h3><p data-pid="fYzGffHB"><span data-search-entity="2">Telegraph风格</span>。仅根规则。在子树工作前阅读作用域 <code><a href="https://link.zhihu.com/?target=http%3A//agents.md/" class=" wrap external" target="_blank" rel="nofollow noreferrer">AGENTS.md</a></code>。</p><p data-pid="NgSCuyxt">主Agent.md定义了如下内容：</p><div class="highlight"><pre><code class="language-text">## 1. Start（开始）
+- 仓库链接和回复规范（使用相对路径）
+- 运行文档列表的命令
+- 高可信度回答的要求
+- 依赖行为的验证
+- 缺失依赖的处理
+- CODEOWNERS 规则
+- 术语规范（"plugin" vs "extensions"）
+## 2. Map（代码地图）
+- 核心 TS 代码位置
+- 插件、SDK、渠道、协议的目录结构
+- 各模块的范围指南位置
+## 3. Architecture（架构原则）
+- 核心保持扩展无关
+- 扩展与核心的边界
+- 扩展代码的导入限制
+- 核心/测试的访问限制
+- 所有者边界原则
+- 配置修复策略
+- 新接口的向后兼容性要求
+- 渠道、提供商、网关协议的职责划分
+## 4. Commands（命令）
+- Node.js 版本要求
+- 安装、CLI、构建命令
+- Smart gate 检查命令
+- 稀疏工作树
+- 生产检查、测试命令
+- 扩展测试
+- 类型检查、格式化、linting
+- Blacksmith/Testbox 的使用
+- 本地验证和 Testbox 的分工
+## 5. GitHub / CI
+- 问题分类和发现
+- PR 扫描/分类规则
+- 搜索和去重
+- PR 评审要求
+- CI 轮询和等待矩阵
+- 发布验证
+## 6. Gates（门禁）
+- 预提交钩子
+- 变更通道的检查范围
+- 移交/推送前的检查
+- 变基后的检查
+- 合并到 main 的验证
+- 构建门禁
+## 7. Code（代码规范）
+- TypeScript ESM 严格模式
+- 类型使用原则
+- 外部边界验证
+- 运行时分支策略
+- 动态导入边界
+- 循环依赖检查
+- 类和注释规范
+- 文件拆分和命名
+## 8. Tests（测试）
+- Vitest 测试框架
+- 测试文件位置和命名
+- 测试隔离和清理
+- 性能优化
+- Mock 策略
+- 并发测试限制
+- Live 测试
+## 9. Docs / Changelog
+- 文档与行为同步
+- 变更日志的用户导向
+- 变更日志的格式和归属
+## 10. Git
+- 提交工具和规范
+- 分支和变基策略
+- 推送规则
+## 11. Security / Release
+- 安全规范（不提交真实凭证）
+- 密钥存储位置
+- 依赖补丁要求
+- 发布和版本管理
+## 12. Apps / Platform
+- 模拟器/真机测试
+- SwiftUI 规范
+- Mac 网关开发
+- 版本更新涉及的文件
+## 13. Ops / Footguns
+- 远程安装文档
+- ClawSweeper 事件处理
+- 内存 wiki 原则
+- 常见陷阱提醒</code></pre></div><p data-pid="VcxNrxEb">其他目录的Agent.md文件不再详细解读</p>
+<hr><h2 id="sec-1-1" data-into-catalog-status="">第二部分 src/gateway/agent-prompt.ts<span class="article-publish-time">编辑于 2026-05-03 17:21・北京</span><a href="#sec-1-1" class="heading-anchor" style="color: rgb(204, 204, 204); margin-left: 4px; text-decoration: none;"> #</a></h2><p data-pid="AaHxViMs">这个程序的职责是：<b>把一段对话历史组装成发给 <span data-search-entity="2">LLM</span> 的消息字符串</b>。它是 <span data-search-entity="1">Gateway 层</span>把"用户对话"翻译成"模型输入"的关键桥梁。</p><div class="highlight"><pre><code class="language-text">import { buildHistoryContextFromEntries, type HistoryEntry } from "../auto-reply/reply/history.js";
+import { extractTextFromChatContent } from "../shared/chat-content.js";
+/**
+* 引入了两个外部能力：
+* buildHistoryContextFromEntries — 负责把历史条目格式化成带上下文的字符串
+* extractTextFromChatContent — 负责从复杂的 content 结构里提取纯文本
+* HistoryEntry — 单条历史记录的类型定义（只引入类型，不引入运行时值）
+**/
+export type ConversationEntry = {
+  role: "user" | "assistant" | "tool";
+  entry: HistoryEntry;
+};
+/**
+这个文件自己定义的类型，对 HistoryEntry 做了一层包装，增加了 role 字段。
+role 只有三种值，用可辨识联合而不是 string（符合 AGENTS.md 里的代码规范）。
+继承了HistroyEntry
+**/
+/**
+ * Coerce body to string. Handles cases where body is a content array
+ * (e.g. [{type:"text", text:"hello"}]) that would serialize as
+ * [object Object] if used directly in a template literal.
+ */
+function safeBody(body: unknown): string {
+  if (typeof body === "string") {
+    return body;
+  }
+  return extractTextFromChatContent(body) ?? "";
+}
+/**
+这个小函数解决了一个实际的运行时陷阱。
+问题根源： 现代 LLM API（OpenAI、Anthropic 等）的消息 content 有两种格式：
+// 格式一：纯字符串
+body = "你好"
+
+// 格式二：content 数组（多模态消息）
+body = [
+  { type: "text",  text: "你好" },
+  { type: "image", url: "..." }
+]
+如果直接把格式二放进模板字符串 `${body}`，JavaScript 会调用 .toString()，输出 [object Object]，
+而不是文本内容。
+**/
+
+export function buildAgentMessageFromConversationEntries(entries: ConversationEntry[]): string {
+  if (entries.length === 0) {
+    return "";
+  }
+/**
+这是这个文件唯一导出的函数，也是最核心的逻辑。它接收一段对话历史，返回一个组装好的字符串，直接交给 LLM。
+没有条目就没有消息，早退。
+**/
+
+  // Prefer the last user/tool entry as "current message" so the agent responds to
+  // the latest user input or tool output, not the assistant's previous message.
+//从后往前扫描，找最后一条 role === "user" 或 role === "tool" 的条目，把它当作"当前需要回复的消息"。  
+let currentIndex = -1;
+  for (let i = entries.length - 1; i &gt;= 0; i -= 1) {
+    const role = entries[i]?.role;
+    if (role === "user" || role === "tool") {
+      currentIndex = i;
+      break;
+    }
+  }
+
+//如果全是 assistant 条目（极端情况），就取最后一条，总比返回空好。  
+if (currentIndex &lt; 0) {
+    currentIndex = entries.length - 1;
+  }
+
+//组装最终字符串  
+const currentEntry = entries[currentIndex]?.entry;
+  if (!currentEntry) {
+    return "";
+  }
+
+  const historyEntries = entries.slice(0, currentIndex).map((e) =&gt; e.entry);
+  if (historyEntries.length === 0) {
+    return safeBody(currentEntry.body);
+  }
+
+  const formatEntry = (entry: HistoryEntry) =&gt; `${entry.sender}: ${safeBody(entry.body)}`;
+  return buildHistoryContextFromEntries({
+    entries: [...historyEntries, currentEntry],
+    currentMessage: formatEntry(currentEntry),
+    formatEntry,
+  });
+}</code></pre></div>
+<p data-pid="kvGJSmal">TypeScript官方资料（英文）：<a href="https://link.zhihu.com/?target=https%3A//www.typescriptlang.org/docs/handbook/intro.html" class=" external" target="_blank" rel="nofollow noreferrer"><span class="invisible">https://www.</span><span class="visible">typescriptlang.org/docs</span><span class="invisible">/handbook/intro.html</span><span class="ellipsis"></span></a></p><p data-pid="hIHaHXE9">TypeScript资料（中文）：       <a href="https://link.zhihu.com/?target=https%3A//zhongsp.github.io/TypeScript/" data-draft-title="TypeScript 使用指南手册" class=" wrap external" target="_blank" rel="nofollow noreferrer">TypeScript 使用指南手册</a></p><hr><h2 id="sec-2-1" data-into-catalog-status="">第三部分 gateway/server<span class="article-publish-time">编辑于 2026-05-04 10:46・北京</span><a href="#sec-2-1" class="heading-anchor" style="color: rgb(204, 204, 204); margin-left: 4px; text-decoration: none;"> #</a></h2><p data-pid="kWoWIWku">该模块的的功能是gateway启动与链接管理。</p><h3 id="sec-2-2" data-into-catalog-status="">1.程序结构<a href="#sec-2-2" class="heading-anchor" style="color: rgb(204, 204, 204); margin-left: 4px; text-decoration: none;"> #</a></h3><div class="highlight"><pre><code class="language-text">src/gateway/server/
+├── __tests__/
+│   └── test-utils.ts                      # 测试辅助工具
+├── plugins-http/                          # 插件 HTTP 路由子模块
+│   ├── path-context.ts                    # 路径上下文解析
+│   ├── route-auth.ts                      # 路由认证
+│   └── route-match.ts                     # 路由匹配
+├── ws-connection/                         # <span data-search-entity="2">WebSocket</span> 连接子模块
+│   ├── auth-context.state.test.ts
+│   ├── auth-context.test.ts
+│   ├── auth-context.ts                    # 认证上下文
+│   ├── auth-messages.ts                   # 认证消息
+│   ├── connect-policy.test.ts
+│   ├── connect-policy.ts                  # 连接策略
+│   ├── handshake-auth-helpers.test.ts
+│   ├── handshake-auth-helpers.ts          # 握手认证辅助
+│   ├── message-handler.post-connect-health.test.ts
+│   ├── message-handler.ts                 # 消息处理器
+│   ├── unauthorized-flood-guard.test.ts
+│   └── unauthorized-flood-guard.ts       # 未授权泛洪防护
+├── close-reason.ts                        # 关闭原因定义
+├── event-loop-health.ts                   # 事件循环健康检查
+├── health-state.test.ts
+├── health-state.ts                        # 健康状态管理
+├── hook-client-ip-config.ts              # Hook 客户端 IP 配置
+├── hooks-request-handler.ts               # Hook 请求处理器
+├── hooks.agent-trust.test.ts
+├── hooks.ts                               # Hook 系统
+├── http-auth.ts                           # HTTP 认证
+├── http-listen.test.ts
+├── http-listen.ts                         # HTTP 监听器
+├── plugin-route-runtime-scopes.test.ts
+├── plugin-route-runtime-scopes.ts        # 插件路由运行时作用域
+├── plugins-http.runtime-scopes.test.ts
+├── plugins-http.test.ts
+├── plugins-http.ts                        # 插件 HTTP 处理
+├── preauth-connection-budget.ts           # 预认证连接预算
+├── presence-events.test.ts
+├── presence-events.ts                     # 在线状态事件
+├── readiness.test.ts
+├── readiness.ts                           # 就绪状态
+├── tls.ts                                 # TLS 配置
+├── ws-connection.startup.test.ts
+├── ws-connection.test.ts
+├── ws-connection.ts                       # WebSocket 连接主模块
+├── ws-shared-generation.ts                # WebSocket 共享生成
+└── ws-types.ts                            # WebSocket 类型定义</code></pre></div><h3 id="sec-2-3" data-into-catalog-status="">2.程序关系图<a href="#sec-2-3" class="heading-anchor" style="color: rgb(204, 204, 204); margin-left: 4px; text-decoration: none;"> #</a></h3><div class="highlight"><pre><code class="language-text">外部连接 (HTTP/WebSocket)
+    ↓
+┌──────────────┬──────────────┐
+│ HTTP 监听器  │WebSocket 连接│
+└──────┬───────┴───────┬──────┘
+       │               │
+       ↓               ↓
+  插件 HTTP 路由    消息处理器
+       │               │
+       └───────┬───────┘
+               ↓
+       ┌───────┴───────┐
+       ↓               ↓
+    Hook 系统      健康状态管理
+                   ↓
+              在线状态事件</code></pre></div><h3 id="sec-2-4" data-into-catalog-status="">3.http服务层<a href="#sec-2-4" class="heading-anchor" style="color: rgb(204, 204, 204); margin-left: 4px; text-decoration: none;"> #</a></h3><p data-pid="TOu5Zkdj">这是一个典型的 生产级服务器启动函数 ，考虑了实际部署中可能遇到的各种问题。</p><div class="highlight"><pre><code class="language-text">import type { Server as HttpServer } from "node:http";
+import { <span data-search-entity="0">GatewayLockError</span> } from "../../infra/gateway-lock.js";
+import { sleep } from "../../utils.js";
+//两个常量把"重试 4 次，每次间隔 500ms"从逻辑中剥离出来单独管理，便于调参。
+const EADDRINUSE_MAX_RETRIES = 4;
+const EADDRINUSE_RETRY_INTERVAL_MS = 500;
+//
+async function closeServerQuietly(httpServer: HttpServer): Promise&lt;void&gt; {
+  await new Promise&lt;void&gt;((resolve) =&gt; {
+    try {
+      httpServer.close(() =&gt; resolve());
+    } catch {
+      resolve();
+    }
+  });
+}
+
+export async function listenGatewayHttpServer(params: {
+//export 是 JavaScript/TypeScript 中 模块系统 的核心关键字，用于将一个模块中的内容（变量、函数、类、类型等） 
+//暴露给其他模块使用 。
+  httpServer: HttpServer;
+  bindHost: string;
+  port: number;
+}) {
+  const { httpServer, bindHost, port } = params;
+//这不是传统的有界循环，而是一个靠 return 或 throw 强制退出的无限循环，等价于 while (true)，
+但可以方便地跟踪 attempt 计数器。
+
+  for (let attempt = 0; ; attempt++) {
+    try {
+      await new Promise&lt;void&gt;((resolve, reject) =&gt; {
+        const onError = (err: <span data-search-entity="1">NodeJS.ErrnoException</span>) =&gt; {
+          httpServer.off("listening", onListening);
+          reject(err);
+        };
+        const onListening = () =&gt; {
+          httpServer.off("error", onError);
+          resolve();
+        };
+        httpServer.once("error", onError);
+        httpServer.once("listening", onListening);
+        httpServer.listen(port, bindHost);
+      });
+      return; // bound successfully
+    } catch (err) {
+      const code = (err as NodeJS.ErrnoException).code;
+      if (code === "EADDRINUSE" &amp;&amp; attempt &lt; EADDRINUSE_MAX_RETRIES) {
+        // Port may still be in TIME_WAIT after a recent process exit; retry.
+        await closeServerQuietly(httpServer);
+        await sleep(EADDRINUSE_RETRY_INTERVAL_MS);
+        continue;
+      }
+      if (code === "EADDRINUSE") {
+        throw new GatewayLockError(
+          `another gateway instance is already listening on ws://${bindHost}:${port}`,
+          err,
+        );
+      }
+      throw new GatewayLockError(
+        `failed to bind gateway socket on ws://${bindHost}:${port}: ${String(err)}`,
+        err,
+      );
+    }
+  }
+}</code></pre></div>
+<p data-pid="kvGJSmal">TypeScript官方资料（英文）：<a href="https://link.zhihu.com/?target=https%3A//www.typescriptlang.org/docs/handbook/intro.html" class=" external" target="_blank" rel="nofollow noreferrer"><span class="invisible">https://www.</span><span class="visible">typescriptlang.org/docs</span><span class="invisible">/handbook/intro.html</span><span class="ellipsis"></span></a></p><p data-pid="hIHaHXE9">TypeScript资料（中文）： <a href="https://link.zhihu.com/?target=https%3A//zhongsp.github.io/TypeScript/" class=" wrap external" target="_blank" rel="nofollow noreferrer">TypeScript 使用指南手册</a></p><hr><h2 id="sec-3-1" data-into-catalog-status="">第三部分 gateway/server<span class="article-publish-time">编辑于 2026-05-04 12:03・北京</span><a href="#sec-3-1" class="heading-anchor" style="color: rgb(204, 204, 204); margin-left: 4px; text-decoration: none;"> #</a></h2><h3 id="sec-3-2" data-into-catalog-status="">4.http-auth.ts<a href="#sec-3-2" class="heading-anchor" style="color: rgb(204, 204, 204); margin-left: 4px; text-decoration: none;"> #</a></h3><p data-pid="xOQqTLY7">这个文件是 OpenClaw 网关的 Canvas（可视化/交互界面） HTTP 请求认证模块 ，专门处理 Canvas 相关路径的认证。</p><div class="highlight"><pre><code class="language-text">import type { IncomingMessage } from "node:http";
+import { A2UI_PATH, CANVAS_HOST_PATH, CANVAS_WS_PATH } from "../../canvas-host/a2ui.js";
+import { safeEqualSecret } from "../../security/secret-equal.js";
+import type { <span data-search-entity="0">AuthRateLimiter</span> } from "../auth-rate-limit.js";
+import {
+  authorizeHttpGatewayConnect,
+  type GatewayAuthResult,
+  type ResolvedGatewayAuth,
+} from "../auth.js";
+import { CANVAS_CAPABILITY_TTL_MS } from "../canvas-capability.js";
+import { getBearerToken, resolveHttpBrowserOriginPolicy } from "../http-auth-utils.js";
+import type { GatewayWsClient } from "./ws-types.js";
+/**
+功能 ：判断一个 URL 路径是否属于 Canvas 相关路径
+
+匹配的路径类型 ：
+
+- A2UI_PATH - A2UI（Agent to UI）路径
+- A2UI_PATH/* - A2UI 的子路径
+- CANVAS_HOST_PATH - Canvas 宿主路径
+- CANVAS_HOST_PATH/* - Canvas 宿主的子路径
+- CANVAS_WS_PATH - Canvas <span data-search-entity="1">WebSocket</span> 路径
+使用场景 ：在网关路由时，快速判断是否需要应用 Canvas 特殊认证逻辑
+**/
+
+export function isCanvasPath(pathname: string): boolean {
+  return (
+    pathname === A2UI_PATH ||
+    pathname.startsWith(`${A2UI_PATH}/`) ||
+    pathname === CANVAS_HOST_PATH ||
+    pathname.startsWith(`${CANVAS_HOST_PATH}/`) ||
+    pathname === CANVAS_WS_PATH
+  );
+}
+/**
+Canvas 能力验证函数： hasAuthorizedWsClientForCanvasCapability
+遍历所有 WebSocket 客户端
+    ↓
+检查客户端是否有 canvasCapability
+    ↓
+检查是否已过期 (canvasCapabilityExpiresAtMs)
+    ↓
+使用安全比较 (safeEqualSecret) 验证能力令牌
+    ↓
+验证成功 → 滑动更新过期时间 → 返回 true
+    ↓
+没有匹配的客户端 → 返回 false
+**/
+function hasAuthorizedWsClientForCanvasCapability(
+  clients: Set&lt;GatewayWsClient&gt;,
+  capability: string,
+): boolean {
+  const nowMs = Date.now();
+  for (const client of clients) {
+    if (!client.canvasCapability || !client.canvasCapabilityExpiresAtMs) {
+      continue;
+    }
+    if (client.canvasCapabilityExpiresAtMs &lt;= nowMs) {
+      continue;
+    }
+    if (safeEqualSecret(client.canvasCapability, capability)) {
+      // Sliding expiration while the connected node keeps using canvas.
+      client.canvasCapabilityExpiresAtMs = nowMs + CANVAS_CAPABILITY_TTL_MS;
+      return true;
+    }
+  }
+  return false;
+}
+/**
+主认证函数： authorizeCanvasRequest
+开始认证
+    ↓
+┌─────────────────────────────────────┐
+│ 1. 快速失败：路径格式错误？         │
+│    malformedScopedPath === true     │
+│    ↓                                 │
+│    返回 { ok: false, reason: "unauthorized" } │
+└─────────────────────────────────────┘
+    ↓
+┌─────────────────────────────────────┐
+│ 2. 尝试 Bearer Token 认证           │
+│    从请求中提取 token                │
+│    ↓                                 │
+│    有 token？                        │
+│    ├─ 是 → 调用 authorizeHttpGatewayConnect │
+│    │      ↓                          │
+│    │   认证成功？                    │
+│    │   ├─ 是 → 返回认证成功         │
+│    │   └─ 否 → 记录失败，继续       │
+│    └─ 否 → 继续下一认证方式         │
+└─────────────────────────────────────┘
+    ↓
+┌─────────────────────────────────────┐
+│ 3. 尝试 Canvas 能力认证              │
+│    有 canvasCapability？             │
+│    ↓                                 │
+│    调用 hasAuthorizedWsClientForCanvasCapability │
+│    ↓                                 │
+│    找到有效客户端？                   │
+│    ├─ 是 → 返回认证成功              │
+│    └─ 否 → 继续                      │
+└─────────────────────────────────────┘
+    ↓
+┌─────────────────────────────────────┐
+│ 4. 所有认证方式都失败                │
+│    返回最后一次失败或默认未授权      │
+└─────────────────────────────────────┘
+**/
+export async function authorizeCanvasRequest(params: {
+  req: IncomingMessage;
+  auth: ResolvedGatewayAuth;
+  trustedProxies: string[];
+  allowRealIpFallback: boolean;
+  clients: Set&lt;GatewayWsClient&gt;;
+  canvasCapability?: string;
+  malformedScopedPath?: boolean;
+  rateLimiter?: AuthRateLimiter;
+}): Promise&lt;GatewayAuthResult&gt; {
+  const {
+    req,
+    auth,
+    trustedProxies,
+    allowRealIpFallback,
+    clients,
+    canvasCapability,
+    malformedScopedPath,
+    rateLimiter,
+  } = params;
+  if (malformedScopedPath) {
+    return { ok: false, reason: "unauthorized" };
+  }
+
+  let lastAuthFailure: GatewayAuthResult | null = null;
+  const token = getBearerToken(req);
+  if (token) {
+    const authResult = await authorizeHttpGatewayConnect({
+      auth: { ...auth, allowTailscale: false },
+      connectAuth: { token, password: token },
+      req,
+      trustedProxies,
+      allowRealIpFallback,
+      rateLimiter,
+      browserOriginPolicy: resolveHttpBrowserOriginPolicy(req),
+    });
+    if (authResult.ok) {
+      return authResult;
+    }
+    lastAuthFailure = authResult;
+  }
+
+  if (canvasCapability &amp;&amp; hasAuthorizedWsClientForCanvasCapability(clients, canvasCapability)) {
+    return { ok: true };
+  }
+  return lastAuthFailure ?? { ok: false, reason: "unauthorized" };
+}</code></pre></div>
+<p data-pid="kvGJSmal">TypeScript官方资料（英文）：<a href="https://link.zhihu.com/?target=https%3A//www.typescriptlang.org/docs/handbook/intro.html" class=" external" target="_blank" rel="nofollow noreferrer"><span class="invisible">https://www.</span><span class="visible">typescriptlang.org/docs</span><span class="invisible">/handbook/intro.html</span><span class="ellipsis"></span></a></p><p data-pid="hIHaHXE9">TypeScript资料（中文）： <a href="https://link.zhihu.com/?target=https%3A//zhongsp.github.io/TypeScript/" class=" wrap external" target="_blank" rel="nofollow noreferrer">TypeScript 使用指南手册</a></p><hr><h2 id="sec-4-1" data-into-catalog-status="">第三部分 gateway/server<span class="article-publish-time">编辑于 2026-05-04 12:27・北京</span><a href="#sec-4-1" class="heading-anchor" style="color: rgb(204, 204, 204); margin-left: 4px; text-decoration: none;"> #</a></h2><h3 id="sec-4-2" data-into-catalog-status="">5.hook.ts<a href="#sec-4-2" class="heading-anchor" style="color: rgb(204, 204, 204); margin-left: 4px; text-decoration: none;"> #</a></h3><p data-pid="NEfgWVeD">这个文件是 OpenClaw 网关的 <span data-search-entity="1">Webhook 系统</span>核心模块 ，负责处理外部 Webhook 请求并触发 Agent 执行。</p><p data-pid="DA9ijk0K">hook.ts工作流</p><div class="highlight"><pre><code class="language-text">┌─────────────────────────────────────────────────────────┐
+│              外部 Webhook 请求                           │
+│  POST /hooks/...                                        │
+└────────────────────┬────────────────────────────────────┘
+                     │
+                     ▼
+┌─────────────────────────────────────────────────────────┐
+│       createGatewayHooksRequestHandler()                │
+│       (工厂函数，初始化环境)                               │
+└────────────────────┬────────────────────────────────────┘
+                     │
+         ┌───────────┴───────────┐
+         │                       │
+         ▼                       ▼
+┌──────────────────┐    ┌──────────────────┐
+│  Wake Hook       │    │  Agent Hook      │
+│  (简单唤醒)       │    │  (执行 Agent)     │
+└────────┬─────────┘    └────────┬─────────┘
+         │                       │
+         ▼                       ▼
+┌──────────────────┐    ┌──────────────────┐
+│ 1. 解析会话密钥    │    │ 1. 准备数据        │
+│ 2. 加入事件队列    │    │ 2. 创建 <span data-search-entity="2">CronJob</span>   │
+│ 3. 可选心跳       │    │ 3. 异步执行        │
+└──────────────────┘    └────────┬─────────┘
+                                │
+                    ┌───────────┴───────────┐
+                    │                       │
+                    ▼ 成功                  ▼ 失败
+         ┌──────────────────┐    ┌──────────────────┐
+         │ 需要宣布?         │    │ 1. 记录警告日志    │
+         ├─ 是 → 加入事件     │    │ 2. 加入事件队列    │
+         │     可选心跳      │    │ 3. 可选心跳        │
+         └─ 否 → 记录日志     │    └──────────────────┘
+         └──────────────────┘</code></pre></div><p data-pid="6Kk9_cYq"><b>hook.ts源码及注释</b></p><div class="highlight"><pre><code class="language-text">import { randomUUID } from "node:crypto";
+import { sanitizeInboundSystemTags } from "../../auto-reply/reply/inbound-text.js";
+import type { CliDeps } from "../../cli/deps.types.js";
+import { getRuntimeConfig } from "../../config/io.js";
+import {
+  resolveAgentMainSessionKey,
+  resolveMainSessionKey,
+  resolveMainSessionKeyFromConfig,
+} from "../../config/sessions.js";
+import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { RunCronAgentTurnResult } from "../../cron/isolated-agent/run.types.js";
+import type { CronJob } from "../../cron/types.js";
+import { requestHeartbeat } from "../../infra/heartbeat-wake.js";
+import { enqueueSystemEvent } from "../../infra/system-events.js";
+import type { createSubsystemLogger } from "../../logging/subsystem.js";
+import { normalizeOptionalString } from "../../shared/string-coerce.js";
+import { type HookAgentDispatchPayload, type HooksConfigResolved } from "../hooks.js";
+import { createHooksRequestHandler, type HookClientIpConfig } from "./hooks-request-handler.js";
+
+type SubsystemLogger = ReturnType&lt;typeof createSubsystemLogger&gt;;
+
+/**
+ * 解析 Hook 事件应该使用的会话密钥
+ * @param params - 参数对象
+ * @param params.cfg - OpenClaw 配置
+ * @param params.agentId - 可选的 Agent ID
+ * @returns 会话密钥
+ */
+function resolveHookEventSessionKey(params: { cfg: OpenClawConfig; agentId?: string }): string {
+  return params.agentId
+    ? resolveAgentMainSessionKey({ cfg: params.cfg, agentId: params.agentId })
+    : resolveMainSessionKey(params.cfg);
+}
+
+/**
+ * 判断是否应该宣布 Hook 运行结果
+ * @param params - 参数对象
+ * @param params.deliver - 是否需要交付
+ * @param params.result - Agent 执行结果
+ * @returns 是否应该宣布
+ */
+function shouldAnnounceHookRunResult(params: {
+  deliver: boolean;
+  result: RunCronAgentTurnResult;
+}): boolean {
+  // 如果执行失败，总是宣布
+  if (params.result.status !== "ok") {
+    return true;
+  }
+  // 如果需要交付但既没有交付也没有尝试交付，则宣布
+  return (
+    params.deliver &amp;&amp; params.result.delivered !== true &amp;&amp; params.result.deliveryAttempted !== true
+  );
+}
+
+/**
+ * 创建网关 Hook 请求处理器的工厂函数
+ * @param params - 参数对象
+ * @param params.deps - CLI 依赖对象
+ * @param params.getHooksConfig - 获取 Hook 配置的函数
+ * @param params.getClientIpConfig - 获取客户端 IP 配置的函数
+ * @param params.bindHost - 绑定的主机地址
+ * @param params.port - 监听的端口
+ * @param params.logHooks - Hook 子系统日志记录器
+ * @returns Hook 请求处理器
+ */
+export function createGatewayHooksRequestHandler(params: {
+  deps: CliDeps;
+  getHooksConfig: () =&gt; HooksConfigResolved | null;
+  getClientIpConfig: () =&gt; HookClientIpConfig;
+  bindHost: string;
+  port: number;
+  logHooks: SubsystemLogger;
+}) {
+  const { deps, getHooksConfig, getClientIpConfig, bindHost, port, logHooks } = params;
+
+  /**
+   * 分派唤醒类型的 Hook
+   * @param value - 参数对象
+   * @param value.text - 要发送的文本
+   * @param value.mode - 唤醒模式："now"（立即）或 "next-heartbeat"（下次心跳）
+   */
+  const dispatchWakeHook = (value: { text: string; mode: "now" | "next-heartbeat" }) =&gt; {
+    // 解析主会话密钥
+    const sessionKey = resolveMainSessionKeyFromConfig();
+    // 将文本加入系统事件队列，标记为不可信
+    enqueueSystemEvent(value.text, { sessionKey, trusted: false });
+    // 如果模式是 "now"，立即请求心跳唤醒
+    if (value.mode === "now") {
+      requestHeartbeat({ source: "hook", intent: "immediate", reason: "hook:wake" });
+    }
+  };
+
+  /**
+   * 分派 Agent 类型的 Hook（核心功能）
+   * @param value - Hook Agent 分派参数
+   * @returns 运行 ID
+   */
+  const dispatchAgentHook = (value: HookAgentDispatchPayload) =&gt; {
+    // 获取会话密钥
+    const sessionKey = value.sessionKey;
+    // 清理 Hook 名称，移除系统标签
+    const safeName = sanitizeInboundSystemTags(value.name);
+    // 生成唯一的 Job ID 和 Run ID
+    const jobId = randomUUID();
+    const runId = randomUUID();
+    // 记录当前时间
+    const now = Date.now();
+
+    // 创建交付配置
+    const delivery = value.deliver
+      ? {
+          mode: "announce" as const,
+          channel: value.channel,
+          to: value.to,
+        }
+      : { mode: "none" as const };
+
+    // 创建 CronJob 对象（虽然叫 Cron，但这里是立即执行）
+    const job: CronJob = {
+      id: jobId,
+      agentId: value.agentId,
+      name: safeName,
+      enabled: true,
+      createdAtMs: now,
+      updatedAtMs: now,
+      // 使用 "at" 类型，立即执行
+      schedule: { kind: "at", at: new Date(now).toISOString() },
+      // 隔离会话，不影响主会话
+      sessionTarget: "isolated",
+      wakeMode: value.wakeMode,
+      // Agent 执行的完整参数
+      payload: {
+        kind: "agentTurn",
+        message: value.message,
+        model: value.model,
+        thinking: value.thinking,
+        timeoutSeconds: value.timeoutSeconds,
+        allowUnsafeExternalContent: value.allowUnsafeExternalContent,
+        externalContentSource: value.externalContentSource,
+      },
+      delivery,
+      state: { nextRunAtMs: now },
+    };
+
+    // Hook 事件会话密钥（在异步块中设置）
+    let hookEventSessionKey: string | undefined;
+
+    // 异步执行 Agent（即发即弃模式）
+    void (async () =&gt; {
+      try {
+        // 获取运行时配置
+        const cfg = getRuntimeConfig();
+        // 解析 Hook 事件会话密钥
+        hookEventSessionKey = resolveHookEventSessionKey({
+          cfg,
+          agentId: value.agentId,
+        });
+
+        // 懒加载：动态导入 Cron 隔离 Agent 模块
+        const { runCronIsolatedAgentTurn } = await import("../../cron/isolated-agent.js");
+
+        // 执行 Agent
+        const result = await runCronIsolatedAgentTurn({
+          cfg,
+          deps,
+          job,
+          message: value.message,
+          sessionKey,
+          lane: "cron",
+        });
+
+        // 生成执行摘要（按优先级选择）
+        const summary =
+          normalizeOptionalString(result.summary) ||
+          normalizeOptionalString(result.error) ||
+          result.status;
+
+        // 生成消息前缀
+        const prefix =
+          result.status === "ok" ? `Hook ${safeName}` : `Hook ${safeName} (${result.status})`;
+
+        // 判断是否需要宣布结果
+        const shouldAnnounce = shouldAnnounceHookRunResult({ deliver: value.deliver, result });
+
+        if (shouldAnnounce) {
+          // 需要宣布：加入系统事件队列
+          const eventSessionKey = hookEventSessionKey ?? resolveMainSessionKeyFromConfig();
+          enqueueSystemEvent(`${prefix}: ${summary}`.trim(), {
+            sessionKey: eventSessionKey,
+            trusted: false,
+          });
+          // 如果是立即唤醒模式，请求心跳
+          if (value.wakeMode === "now") {
+            requestHeartbeat({ source: "hook", intent: "immediate", reason: `hook:${jobId}` });
+          }
+        } else if (result.status === "ok" &amp;&amp; !value.deliver) {
+          // 不需要宣布但执行成功：记录日志
+          logHooks.info("hook agent run completed without announcement", {
+            sourcePath: value.sourcePath,
+            name: safeName,
+            runId,
+            jobId,
+            agentId: value.agentId,
+            sessionKey,
+            completedAt: new Date().toISOString(),
+          });
+        }
+      } catch (err) {
+        // 错误处理
+        logHooks.warn(`hook agent failed: ${String(err)}`);
+        // 将错误加入系统事件队列
+        enqueueSystemEvent(`Hook ${safeName} (error): ${String(err)}`, {
+          sessionKey: hookEventSessionKey ?? resolveMainSessionKeyFromConfig(),
+          trusted: false,
+        });
+        // 如果是立即唤醒模式，请求心跳
+        if (value.wakeMode === "now") {
+          requestHeartbeat({
+            source: "hook",
+            intent: "immediate",
+            reason: `hook:${jobId}:error`,
+          });
+        }
+      }
+    })();
+
+    // 立即返回 Run ID，不等待异步执行完成
+    return runId;
+  };
+
+  // 创建并返回 Hook 请求处理器
+  return createHooksRequestHandler({
+    getHooksConfig,
+    bindHost,
+    port,
+    logHooks,
+    getClientIpConfig,
+    dispatchAgentHook,
+    dispatchWakeHook,
+  });
+}</code></pre></div>
+<p data-pid="kvGJSmal">TypeScript官方资料（英文）：<a href="https://link.zhihu.com/?target=https%3A//www.typescriptlang.org/docs/handbook/intro.html" data-icon-name="zhicon_icon_24_link" class=" external" target="_blank" rel="nofollow noreferrer"><span class="invisible">https://www.</span><span class="visible">typescriptlang.org/docs</span><span class="invisible">/handbook/intro.html</span><span class="ellipsis"></span></a></p><p data-pid="hIHaHXE9">TypeScript资料（中文）： <a href="https://link.zhihu.com/?target=https%3A//zhongsp.github.io/TypeScript/" data-icon-name="zhicon_icon_24_link" class=" wrap external" target="_blank" rel="nofollow noreferrer">TypeScript 使用指南手册</a></p><p data-pid="85xt_P65">openclaw 2026.5.4 飞书文档创建的bug</p><hr><h2 id="sec-5-1" data-into-catalog-status="">Openclaw2026.5.4的飞书文档创建bug分析<span class="article-publish-time">编辑于 2026-05-07 16:25・北京</span><a href="#sec-5-1" class="heading-anchor" style="color: rgb(204, 204, 204); margin-left: 4px; text-decoration: none;"> #</a></h2><p data-pid="QdpdrCX6">openclaw创建飞书文档是我经常使用的工具，这个工具由飞书插件提供，在2026.5.x之后，Openclaw一直存在无法创建文档bug，直接的原因是Openclaw运行时飞书插件的工具没有进入工具列表。</p><p data-pid="HScq1gS4">我对2026.5.4版本的openclaw进行了追查，找到了一个openclaw的渠道解析的bug。</p><h2 id="sec-5-2" data-into-catalog-status="">Openclaw调用飞书插件工具的机制<a href="#sec-5-2" class="heading-anchor" style="color: rgb(204, 204, 204); margin-left: 4px; text-decoration: none;"> #</a></h2><p data-pid="S8EdtR84">Openclaw在加载飞书插件的工具，如创建飞书文档、读写飞书文档是有条件加载，只有飞书渠道发起的任务才会加载该工具列表，问题就出在Openclaw在解析sessionKey识别渠道时出现bug，导致无法正确识别飞书渠道。</p><h2 id="sec-5-3" data-into-catalog-status="">根本原因：<span data-search-entity="1">SessionKey</span> 解析逻辑 Bug<a href="#sec-5-3" class="heading-anchor" style="color: rgb(204, 204, 204); margin-left: 4px; text-decoration: none;"> #</a></h2><p data-pid="D8MDwQF5">实际 SessionKey 格式（Direct Message）：</p><div class="highlight"><pre><code class="language-text">agent:main:feishu:main:direct:&lt;我的用户id&gt;
+          ↑      ↑     ↑      ↑      ↑
+        agentId channel accountId kind userId</code></pre></div><p data-pid="vvnKQTyr">结构：agent:{agentId}:{channel}:{accountId}:{kind}:{userId}</p><p data-pid="JSnegdmf">openclaw解析代码假设的格式：</p><div class="highlight"><pre><code class="language-text">agent:main:feishu:group:group_id
+          ↑      ↑     ↑      ↑
+        agentId channel kind groupId</code></pre></div><p data-pid="XGHAsedj">Openclaw解析代码与实际sessionKey格式不一致，导致解析结果错误</p><div class="highlight"><pre><code class="language-text">解析结果：
+parts[0] = "feishu" ✓
+parts[1] = "main" ← 误认为是 kind
+parts[2] = "direct" ← 真正的 kind 被忽略</code></pre></div><p data-pid="YObGbhI3">而Openclaw在加载工具时，有如下的判断逻辑</p><div class="highlight"><pre><code class="language-text">if (kind !== "group" &amp;&amp; kind !== "channel") return null;</code></pre></div><p data-pid="DItD20zg">因为 kind = "main" 既不是 "group" 也不是 "channel"，函数返回 null。</p><p data-pid="StoxrUbJ">影响范围</p><ol><li data-pid="2f5Hwfmk">Direct Message 无法正确解析 → groupPolicy = null</li><li data-pid="pnbrr5W_">工具 allowlist 未包含飞书工具 → feishu_doc 等工具不可用</li><li data-pid="omwKHGuN">所有飞书 Direct Message 会话受影响</li></ol><p data-pid="C4qJnPhX">代码位置</p><div class="highlight"><pre><code class="language-text">问题文件：
+~/.nvm/versions/node/v24.13.1/lib/node_modules/openclaw/dist/tools-gW9A7NO2.js</code></pre></div><p data-pid="wVZtgQPB">问题函数：</p><div class="highlight"><pre><code class="language-text">function parseSessionKeyForPolicy(sessionKey) {
+    const body = sessionKey.split(":").slice(2);  // 去掉 "agent:main:"
+    const channel = body[0];  // "feishu"
+    const kind = body[1];      // "main" ← Bug! 应该是 "direct"
+    // ...
+    if (kind !== "group" &amp;&amp; kind !== "channel") return null;
+}</code></pre></div><h2 id="sec-5-4" data-into-catalog-status="">修复方案<a href="#sec-5-4" class="heading-anchor" style="color: rgb(204, 204, 204); margin-left: 4px; text-decoration: none;"> #</a></h2><p data-pid="5Iur7b0s">修改 SessionKey 解析逻辑：</p><div class="highlight"><pre><code class="language-text">function parseSessionKeyForPolicy(sessionKey) {
+    const parts = sessionKey.split(":");
+    // agent:{agentId}:{channel}:{accountId}:{kind}:{userId}
+    // 或 agent:{agentId}:{channel}:{kind}:{groupId}
+    
+    const channel = parts[2];
+    
+    // 判断格式：
+    // - Direct: 6 段，parts[4] = "direct"
+    // - Group: 5 段，parts[3] = "group"
+    
+    if (parts.length === 6 &amp;&amp; parts[4] === "direct") {
+        return {
+            channel,
+            kind: "direct",
+            userId: parts[5],
+            accountId: parts[3]
+        };
+    } else if (parts.length === 5 &amp;&amp; parts[3] === "group") {
+        return {
+            channel,
+            kind: "group",
+            groupId: parts[4]
+        };
+    }
+    
+    return null;
+}</code></pre></div><p data-pid="ZimjFBoD">总体感受是，Openclaw的发版速度很快，但是质量在下降。</p>
+
+<div id="sources">
+  <h3>来源</h3>
+  <ul>
+    <li><a href="https://zhuanlan.zhihu.com/p/2034295958205358639" target="_blank">OpenClaw 深度解构：从架构到Agent运行时的全景代码解读（一）</a></li>
+    <li><a href="https://zhuanlan.zhihu.com/p/2034307124520543040" target="_blank">OpenClaw 深度解构：从架构到Agent运行时的全景代码解读（二）</a></li>
+    <li><a href="https://zhuanlan.zhihu.com/p/2034566235896145462" target="_blank">OpenClaw 深度解构：从架构到Agent运行时的全景代码解读（三）</a></li>
+    <li><a href="https://zhuanlan.zhihu.com/p/2034584871125959618" target="_blank">OpenClaw 深度解构：从架构到Agent运行时的全景代码解读（四）</a></li>
+    <li><a href="https://zhuanlan.zhihu.com/p/2034603162607334630" target="_blank">OpenClaw 深度解构：从架构到Agent运行时的全景代码解读（五）</a></li>
+    <li><a href="https://zhuanlan.zhihu.com/p/2035315911473745974" target="_blank">OpenClaw 深度解构：openclaw 2026.5.x 飞书文档创建的bug代码解读（六）</a></li>
+  </ul>
+</div>
+
+<footer>
+  <p>由「知乎专栏文章抓取合并导出」脚本自动生成 · 2026/5/9</p>
+</footer>
+</body>
+</html>

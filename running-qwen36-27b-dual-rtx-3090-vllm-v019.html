@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>在双 RTX 3090 上本地运行 Qwen3.6 27B —— vLLM v0.19 实战（中文翻译）</title>
+<style>
+  :root {
+    --bg: #0d0d0d;
+    --surface: #1a1a1a;
+    --border: #2a2a2a;
+    --text: #e8e8ed;
+    --text-muted: #888;
+    --accent: #f5c842;
+    --code-bg: #141414;
+    --link: #7eb8f5;
+    --green: #3fb950;
+    --red: #f85149;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem 4rem;
+  }
+  a { color: var(--link); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  h1, h2, h3 { color: var(--text); margin-top: 2rem; margin-bottom: 1rem; }
+  h1 { font-size: 1.8rem; border-bottom: 1px solid var(--border); padding-bottom: 0.5rem; }
+  h2 { font-size: 1.4rem; }
+  h3 { font-size: 1.15rem; color: var(--accent); }
+  p { margin-bottom: 1rem; }
+  hr { border: none; border-top: 1px solid var(--border); margin: 2rem 0; }
+  .meta {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    margin-bottom: 1.5rem;
+  }
+  .meta a { color: var(--accent); }
+  /* Featured image: matches original page render width (~657px) */
+  img.featured {
+    width: 657px;
+    max-width: 100%;
+    display: block;
+    margin: 0 auto 1.5rem;
+    border-radius: 8px;
+  }
+  .intro {
+    font-size: 1.05rem;
+    color: var(--text-muted);
+    margin-bottom: 2rem;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1rem 0 1.5rem;
+    font-size: 0.9rem;
+    background: var(--surface);
+    border-radius: 6px;
+    overflow: hidden;
+  }
+  th, td {
+    padding: 0.55rem 0.75rem;
+    border: 1px solid var(--border);
+    text-align: left;
+  }
+  th {
+    background: #222;
+    font-weight: 600;
+    color: var(--accent);
+  }
+  code {
+    background: var(--code-bg);
+    padding: 0.15em 0.4em;
+    border-radius: 4px;
+    font-size: 0.88em;
+    font-family: "JetBrains Mono", "Fira Code", "Cascadia Code", Consolas, monospace;
+    color: #f0883e;
+  }
+  pre {
+    background: #1e1e2e;
+    border: 1px solid #3a3a4a;
+    border-left: 3px solid var(--accent);
+    border-radius: 6px;
+    padding: 1rem 1.2rem;
+    overflow-x: auto;
+    margin: 1rem 0 1.5rem;
+    font-size: 0.95rem;
+    line-height: 1.6;
+  }
+  pre code {
+    background: none;
+    padding: 0;
+    color: #cdd6f4;
+  }
+  ul, ol { margin: 0.5rem 0 1rem 1.5rem; }
+  li { margin-bottom: 0.35rem; }
+  blockquote {
+    border-left: 3px solid var(--accent);
+    padding: 0.5rem 1rem;
+    margin: 1rem 0;
+    background: rgba(245, 200, 66, 0.05);
+    border-radius: 0 6px 6px 0;
+  }
+  .highlight { color: var(--green); font-weight: 600; }
+  .warning { color: var(--red); font-weight: 600; }
+  strong { color: var(--text); }
+  .footer {
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    margin-top: 3rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border);
+  }
+  .tags {
+    margin-top: 2rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  .tags span {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 0.2rem 0.6rem;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+  }
+
+/* TOC Navigation */
+#toc-toggle {
+  position: fixed;
+  top: 1.2rem;
+  left: 1.2rem;
+  z-index: 1001;
+  width: 36px;
+  height: 36px;
+  background: rgba(245, 200, 66, 0.12);
+  border: 1px solid rgba(245, 200, 66, 0.35);
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 0;
+  transition: background 0.2s;
+}
+#toc-toggle:hover {
+  background: rgba(245, 200, 66, 0.22);
+  border-color: rgba(245, 200, 66, 0.5);
+}
+#toc-toggle span {
+  display: block;
+  width: 18px;
+  height: 2px;
+  background: #f5c842;
+  border-radius: 1px;
+  transition: transform 0.3s, opacity 0.3s;
+}
+#toc-toggle.open span:nth-child(1) {
+  transform: translateY(6px) rotate(45deg);
+}
+#toc-toggle.open span:nth-child(2) {
+  opacity: 0;
+}
+#toc-toggle.open span:nth-child(3) {
+  transform: translateY(-6px) rotate(-45deg);
+}
+
+#toc-nav {
+  position: fixed;
+  top: 0;
+  left: -320px;
+  width: 300px;
+  height: 100vh;
+  background: #111;
+  border-right: 1px solid #2a2a2a;
+  z-index: 1000;
+  padding: 4.5rem 1.2rem 1.5rem;
+  overflow-y: auto;
+  transition: left 0.3s ease;
+  box-shadow: none;
+}
+#toc-nav.open {
+  left: 0;
+  box-shadow: 4px 0 20px rgba(0,0,0,0.5);
+}
+.toc-header {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #888;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid #2a2a2a;
+}
+#toc-nav ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+#toc-nav li {
+  margin: 0;
+}
+.toc-link {
+  display: block;
+  padding: 0.45rem 0.75rem;
+  color: #c0c0c5;
+  text-decoration: none;
+  font-size: 0.9rem;
+  border-radius: 4px;
+  transition: background 0.15s, color 0.15s;
+  border-left: 2px solid transparent;
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+.toc-link:hover {
+  background: rgba(245, 200, 66, 0.08);
+  color: #f5c842;
+  border-left-color: #f5c842;
+}
+.toc-link.sub {
+  padding-left: 1.5rem;
+  font-size: 0.85rem;
+  color: #999;
+}
+.toc-link.sub:hover {
+  color: #f5c842;
+}
+/* Overlay when TOC is open */
+.toc-overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.4);
+  z-index: 999;
+  cursor: pointer;
+}
+.toc-overlay.open {
+  display: block;
+}
+h2[id], h3[id] {
+  scroll-margin-top: 1rem;
+}
+
+</style>
+</head>
+<body>
+
+<!-- TOC Toggle Button -->
+<button id="toc-toggle" onclick="document.getElementById('toc-nav').classList.toggle('open');document.getElementById('toc-toggle').classList.toggle('open');document.getElementById('toc-overlay').classList.toggle('open');" aria-label="切换导航目录">
+  <span></span>
+  <span></span>
+  <span></span>
+</button>
+
+<!-- TOC Navigation Panel -->
+<nav id="toc-nav">
+  <div class="toc-header">导航目录</div>
+  <ul>
+<li><a href="#key-takeaways" class="toc-link">核心要点</a></li>
+<li><a href="#goal" class="toc-link">🎯 目标</a></li>
+<li><a href="#hardware" class="toc-link">🖥️ 硬件配置</a></li>
+<li><a href="#model" class="toc-link">🧠 模型：Qwen3.6 27B AWQ-INT4</a></li>
+<li><a href="#why-vllm" class="toc-link">⚙️ 为什么选 vLLM v0.19</a></li>
+<li><a href="#config" class="toc-link">🧩 最终启动配置</a></li>
+<li><a href="#decisions" class="toc-link">🔍 配置决策详解</a></li>
+<li><a href="#gpu-mem" class="toc-link sub">--gpu-memory-utilization 0.8349</a></li>
+<li><a href="#kv-fp8" class="toc-link sub">--kv-cache-dtype fp8</a></li>
+<li><a href="#tp" class="toc-link sub">--tensor-parallel-size 2 + --disable-custom-all-reduce</a></li>
+<li><a href="#flashinfer" class="toc-link sub">--attention-backend FLASHINFER</a></li>
+<li><a href="#mtp" class="toc-link sub">MTP 投机解码配置</a></li>
+<li><a href="#block-size" class="toc-link sub">--block-size 16</a></li>
+<li><a href="#prefix" class="toc-link sub">前缀缓存 + 分块预填充</a></li>
+<li><a href="#debug" class="toc-link">🐛 排查启动失败</a></li>
+<li><a href="#startup" class="toc-link">⏱️ 启动耗时分析：冷启动为何偏慢</a></li>
+<li><a href="#perf" class="toc-link">📈 性能结果</a></li>
+<li><a href="#hybrid" class="toc-link">🏗️ 混合架构笔记（Mamba + Attention）</a></li>
+<li><a href="#next" class="toc-link">🧪 下一步计划</a></li>
+<li><a href="#reference" class="toc-link">🗂️ 最终配置参考</a></li>
+<li><a href="#resources" class="toc-link">📚 参考资料</a></li>
+  </ul>
+</nav>
+
+<!-- Overlay -->
+<div class="toc-overlay" id="toc-overlay" onclick="document.getElementById('toc-nav').classList.remove('open');document.getElementById('toc-toggle').classList.remove('open');document.getElementById('toc-overlay').classList.remove('open');"></div>
+
+<!-- Featured Image — original size 1200x630 -->
+<img class="featured" src="https://derekarmstrong.dev/blog/running-qwen36-27b-dual-rtx-3090-vllm-v019/featured.webp" alt="featured image">
+
+<!-- Meta -->
+<p class="meta">
+  原文：<a href="https://derekarmstrong.dev/blog/running-qwen36-27b-dual-rtx-3090-vllm-v019" target="_blank">Running Qwen3.6 27B Locally on Dual RTX 3090s with vLLM v0.19</a><br>
+  作者：<a href="https://derekarmstrong.dev" target="_blank">Derek Armstrong</a> · 2026年4月26日 · 约 8 分钟阅读
+</p>
+
+<h1>在双 RTX 3090 上本地运行 Qwen3.6 27B —— vLLM v0.19 实战</h1>
+
+<p class="intro">
+  本地跑一个前沿级别的模型，有一种云端订阅无法替代的满足感。Qwen3.6 发布后，我想在家庭实验室中以全能力运行它：160K 上下文、为 Cline 和 Roo Code 提供工具调用、投机解码，全都要。这篇文章覆盖了完整的过程：每一个配置决策、每一个报错、以及日志背后的真实含义。如果你也在消费级 Ampere GPU（RTX 3090、3080 等）上跑 vLLM，这里的大部分经验可以直接复用。
+</p>
+
+<hr>
+
+<h2 id="key-takeaways">核心要点</h2>
+<ul>
+  <li>双 RTX 3090 可以在 160K 上下文窗口下，跑出可用于 Agent 编码的 Qwen3.6 27B AWQ-INT4 性能。</li>
+  <li>最大的性能提升来自 FP8 KV Cache、FlashInfer Attention + Sampler，以及将 MTP 投机解码调至 1 个投机 Token。</li>
+  <li>vLLM v0.19 V1 的启动诊断严格但实用：大多数"神秘"的初始化崩溃，实际上都是显存没清理干净导致的。</li>
+  <li>这套配置下批量吞吐量达到约 116~124 tok/s，相比之前基于 Ollama 的服务是大幅跃升。</li>
+  <li>微小的配置细节也很关键。仅将 block size 从 32 改为 16，就回收了数百 MB 的 KV Cache 容量。</li>
+</ul>
+
+<hr>
+
+<h2 id="goal">🎯 目标</h2>
+<p>
+  我想要的不是一个跑分截图，而是一个能投入实际编码工作流的、接近生产环境的本地端点。这意味着：长上下文、稳定的工具调用解析、强大的多轮对话连贯性，以及足够的吞吐量——让 Cline 会话保持响应灵敏，而不是像在糖浆里对话。
+</p>
+
+<hr>
+
+<h2 id="hardware">🖥️ 硬件配置</h2>
+<ul>
+  <li>2x NVIDIA RTX 3090 24GB（共 48GB 显存）</li>
+  <li>AMD Ryzen 9 5950X</li>
+  <li>Unraid + Docker 容器</li>
+</ul>
+<p>
+  双 3090 是核心限制。它们是 sm86 架构（Ampere）：依然非常强大，但缺少一些新架构才有的特性。两张卡之间的 Tensor Parallelism 通过 PCIe + NCCL 通信，而非 NVLink 式的对称内存。能跑没问题，但存在额外开销。
+</p>
+
+<hr>
+
+<h2 id="model">🧠 模型：Qwen3.6 27B AWQ-INT4</h2>
+<p>
+  Qwen3.6 27B 是一个稠密 Transformer，所有 270 亿参数在每次前向传播时全部激活。这与 35B-A3B 等 MoE 变体不同，而对于这个使用场景，这个区别至关重要。
+</p>
+<p>
+  在 Cline 和 Roo Code 的 Agent 编码场景中，模型需要在长上下文中追踪大量工具调用的结果，并持续输出可靠的 JSON。稠密架构在这方面往往是优势——每个 Token 都能动用全网络。MoE 通过每个 Token 只激活部分子网络来换取速度，但在复杂的会话中，可能会牺牲一些长程一致性。
+</p>
+<p>
+  本文使用的量化版本是 <code>cyankiwi/Qwen3.6-27B-AWQ-INT4</code>，一个 BF16-INT4 混合精度的 AWQ 模型，采用 compressed-tensors 格式。vLLM 在 Ampere 架构上可以直接通过 MarlinLinearKernel 运行它。
+</p>
+
+<hr>
+
+<h2 id="why-vllm">⚙️ 为什么选 vLLM v0.19</h2>
+<p>
+  vLLM v0.19.1（2026年4月）默认使用 V1 引擎。V1 是一次重大的引擎重构：它将 EngineCore 独立出来，将分词、调度和流式输出与模型执行并行化，而不是串行处理整个流水线。实际效果是：同样的硬件上，吞吐量有了实质性的提升。
+</p>
+<p>对于这个工作负载，两个 V1 特性尤为重要：</p>
+<ul>
+  <li><strong>零气泡异步调度</strong>——可与投机解码共存</li>
+  <li><strong>分段 CUDA Graphs</strong>——对 Qwen3.6 这种混合 Mamba/Attention 层的复杂模型架构更加友好</li>
+</ul>
+
+<hr>
+
+<h2 id="config">🧩 最终启动配置</h2>
+<pre><code>python -m vllm.entrypoints.openai.api_server \
+  --model cyankiwi/Qwen3.6-27B-AWQ-INT4 \
+  --dtype bfloat16 \
+  --quantization compressed-tensors \
+  --kv-cache-dtype fp8 \
+  --tensor-parallel-size 2 \
+  --disable-custom-all-reduce \
+  --gpu-memory-utilization 0.8349 \
+  --max-model-len 160000 \
+  --max-num-seqs 4 \
+  --max-num-batched-tokens 16384 \
+  --block-size 16 \
+  --enable-prefix-caching \
+  --enable-chunked-prefill \
+  --attention-backend FLASHINFER \
+  --enable-auto-tool-choice \
+  --tool-call-parser qwen3_coder \
+  --reasoning-parser qwen3 \
+  --speculative-config '{"method":"mtp","num_speculative_tokens":1}' \
+  --generation-config vllm \
+  --trust-remote-code \
+  --host 0.0.0.0 \
+  --port 8000</code></pre>
+
+<p>环境变量：</p>
+<pre><code>VLLM_USE_FLASHINFER_SAMPLER=1</code></pre>
+
+<hr>
+
+<h2 id="decisions">🔍 配置决策详解</h2>
+
+<h3 id="gpu-mem">--gpu-memory-utilization 0.8349</h3>
+<p>
+  这个参数设置权重加载后，预留给 KV Cache 的显存比例。它不是动态的运行时上限——vLLM 在启动时进行内存分析，减去权重的占用，然后在这个上限下从剩余空间分配 KV Block。
+</p>
+<p>
+  48GB 总显存，权重约占 9.72GB（来自启动日志），0.8349 这个值让每张 GPU 分配到约 7.7GB 的 KV Cache 空间，总计约 118,400 个 KV Token。
+</p>
+<p>
+  这个精确到小数点后四位的值直接来自 vLLM 启动时的建议。v0.19 拥有更精确的 CUDA Graph 分析能力，日志建议从 0.83 提升到 0.8349，以维持等效的 KV 容量。
+</p>
+<p>
+  <strong>重要提醒：</strong>这假设容器启动时 GPU 是干净的。如果 Ollama、ComfyUI 或残留容器仍然占用着显存，V1 现在会在加载权重前校验可用显存，直接报错并给出清晰的提示。
+</p>
+
+<h3 id="kv-fp8">--kv-cache-dtype fp8</h3>
+<p>
+  FP8 KV Cache 相比 BF16 大约节省一半的 KV 内存——正是它让 48GB 显存跑 160K 上下文成为可能。日志中提到如果没有缩放因子可能会影响精度，但在这个工作负载中，实际精度损失可以忽略不计。
+</p>
+
+<h3 id="tp">--tensor-parallel-size 2 + --disable-custom-all-reduce</h3>
+<p>
+  模型切分到两张 GPU 上。禁用 custom all-reduce 强制使用 NCCL all-reduce，而非依赖 NVLink 的自定义内核。对于通过 PCIe 连接的 3090 来说，这是正确的选择。
+</p>
+
+<h3 id="flashinfer">--attention-backend FLASHINFER</h3>
+<p>
+  FlashInfer（已包含在 <code>vllm/vllm-openai:latest</code> 镜像中）在该配置下，解码密集场景的性能优于默认的 FlashAttention2。配合 <code>VLLM_USE_FLASHINFER_SAMPLER=1</code> 环境变量，将 Attention 和 Sampling 都交给 FlashInfer 内核处理。
+</p>
+<p>启动确认日志如下：</p>
+<pre><code>Using FlashInfer for top-p &amp; top-k sampling.
+Using AttentionBackendEnum.FLASHINFER backend.</code></pre>
+
+<h3 id="mtp">MTP 投机解码配置</h3>
+<p>
+  MTP 投机解码利用轻量级的草稿路径，在 Token 被接受时几乎"免费"获得额外输出。实际效果带来了可观的解码性能提升。
+</p>
+<p>两个关键的实践选择：</p>
+<ul>
+  <li><code>"method":"mtp"</code> 是 v0.19 的现代路径</li>
+  <li>在量化设置下，<code>num_speculative_tokens=1</code> 的表现优于 2——因为接受率不足以证明额外的草稿计算是值得的</li>
+</ul>
+
+<h3 id="block-size">--block-size 16</h3>
+<p>
+  Qwen3.6 的混合 Mamba/Attention 层对 Cache/Page 对齐非常敏感。在 block size 为 32 时，日志显示存在填充开销：</p>
+<pre><code>Add 3 padding layers, may waste at most 6.25% KV cache memory</code></pre>
+<p>
+  降到 16 消除了这种浪费。在约 7.7GB 的 KV Cache 中，6.25% 就是约 480MB——在关心长上下文余量时，这不是一个可以四舍五入的数字。
+</p>
+
+<h3 id="prefix">前缀缓存 + 分块预填充</h3>
+<p>
+  <strong>前缀缓存</strong>对于 Agent 会话至关重要——系统提示和代码上下文反复出现。一旦缓存，后续轮次就不用重新执行同样的重型预填充。
+</p>
+<p>
+  <strong>分块预填充</strong>防止大型预填充操作独占引擎，在多请求场景下保持延迟更稳定。
+</p>
+
+<hr>
+
+<h2 id="debug">🐛 排查启动失败</h2>
+<p>
+  有两个失败值得记录，因为它们乍一看都具有误导性。
+</p>
+
+<h3 id="failure1">失败 1：WorkerProc 初始化错误，实则是显存争用</h3>
+<p>
+  第一次崩溃看起来像是 FlashInfer 兼容性问题：worker 进程在 <code>init_device</code> 阶段失败。但根本原因要简单得多——Ollama 还在每张 GPU 上占用着约 21.8GB 显存。
+</p>
+<p>
+  v0.19 的 V1 引擎在加载权重前会校验可用显存。每张 GPU 只剩约 1.74GB 可用，而需求约为 19.56GB，快速失败是预期行为。
+</p>
+<p><strong>解决方法：</strong>启动前先运行 <code>nvidia-smi</code>，确认两张 GPU 基本清空。在 Unraid 上，"空闲"不等于"释放了显存"——容器必须停掉。</p>
+
+<h3 id="failure2">失败 2：Docker 镜像选择</h3>
+<p>
+  Unraid Community Apps 的模板指向了一个自定义的 <code>qwen3_5-cu130</code> 镜像，它早于 Qwen3.6 发布，可能不包含 FlashInfer。
+</p>
+<p>应该使用：</p>
+<pre><code>vllm/vllm-openai:latest</code></pre>
+<p>
+  使用过时的社区镜像，会产生看起来像后端兼容性问题、实则是打包问题的假象。
+</p>
+
+<hr>
+
+<h2 id="startup">⏱️ 启动耗时分析：冷启动为何偏慢</h2>
+<p>冷启动大约需要 4~5 分钟。各阶段分解如下：</p>
+
+<table>
+  <thead><tr><th>阶段</th><th>耗时</th></tr></thead>
+  <tbody>
+    <tr><td>模型权重加载（27B AWQ）</td><td>~15.5s</td></tr>
+    <tr><td>草稿模型加载（MTP）</td><td>~6.4s</td></tr>
+    <tr><td>torch.compile 主干</td><td>~44.6s</td></tr>
+    <tr><td>torch.compile eagle head</td><td>~7.2s</td></tr>
+    <tr><td>分析/预热运行</td><td>~83.7s</td></tr>
+    <tr><td>CUDA Graph 捕获</td><td>~1s</td></tr>
+    <tr><td><strong>总计</strong></td><td><strong>~144s</strong></td></tr>
+  </tbody>
+</table>
+
+<p>
+  分析阶段的 <code>shm_broadcast</code> 警告在这个上下文中只是信息性的——通常是 worker 协调，等待 compile 完成。缓存预热后，重启会快得多，因为 <code>/root/.cache/vllm/torch_compile_cache/</code> 会被复用。
+</p>
+
+<hr>
+
+<h2 id="perf">📈 性能结果</h2>
+<p>吞吐量测试使用 2,000 Token 的生成任务。</p>
+
+<table>
+  <thead><tr><th>测试</th><th>并发数</th><th>墙钟时间</th><th>批量吞吐量</th><th>单请求</th></tr></thead>
+  <tbody>
+    <tr><td>Run 1</td><td>2</td><td>34.2s</td><td><span class="highlight">116.9 tok/s</span></td><td>58.5 tok/s</td></tr>
+    <tr><td>Run 2</td><td>4</td><td>64.6s</td><td><span class="highlight">123.9 tok/s</span></td><td>31.0 tok/s</td></tr>
+  </tbody>
+</table>
+
+<p><strong>观察：</strong></p>
+<ul>
+  <li>批量吞吐量随并发增加而提升（116.9 → 123.9 tok/s），说明 2 并发时 GPU 还有余量。</li>
+  <li>之前看起来像"4 并发很慢"的行为，实际上是调度器的预期行为——由 <code>--max-num-seqs</code> 设得太低导致。</li>
+  <li>KV Cache 容量计算与实际行为吻合：真实的工具调用会话通常远低于 160K/请求，所以有效并发比最差情况建模要好得多。</li>
+</ul>
+<p>
+  作为对比，之前用 Ollama 在该硬件上跑 Qwen3.5 27B Q4_K_M 大概是 15~25 tok/s（单线程）。当前配置在实际工作负载中达到了约 5~7 倍的吞吐量提升。
+</p>
+
+<hr>
+
+<h2 id="hybrid">🏗️ 混合架构笔记（Mamba + Attention）</h2>
+<p>
+  Qwen3.6 混合了 Transformer Attention 和 Mamba 层。这就是你会看到 Mamba 特有的启动行为的原因：
+</p>
+<pre><code>Mamba cache mode is set to 'align' for Qwen3_5ForConditionalGeneration
+by default when prefix caching is enabled
+
+Setting attention block size to 1600 tokens to ensure that
+attention page size is &gt;= mamba page size</code></pre>
+<p>
+  <code>align</code> 模式让 Mamba 和 Attention 的 Page 在前缀缓存时保持一致。vLLM 会自动处理，但在调优 block size 和理解为什么某些值会产生不必要的填充开销时，了解这个背景很有帮助。
+</p>
+<blockquote>
+  补充说明：这就是"能跑"和"跑得好"分道扬镳的地方之一。默认值已经不错，但看日志会更好。
+</blockquote>
+
+<hr>
+
+<h2 id="next">🧪 下一步计划</h2>
+<ul>
+  <li><strong>多 Agent 编排</strong>——将复杂的子 Agent 路由到此端点，同时用小模型处理快速窄任务</li>
+  <li><strong>前缀缓存可观测性</strong>——将 <code>/metrics</code> 采集到 Grafana，测量各类会话的实际命中率</li>
+  <li><strong>长上下文压力测试</strong>——验证持续 100K+ Token 会话的稳定性</li>
+  <li><strong>MTP 接受率遥测</strong>——在生产中记录接受率，验证 <code>num_speculative_tokens=1</code> 是否始终最优</li>
+</ul>
+
+<hr>
+
+<h2 id="reference">🗂️ 最终配置参考</h2>
+<pre><code># Docker 环境
+image: vllm/vllm-openai:latest
+runtime: nvidia
+ipc: host
+environment:
+  VLLM_USE_FLASHINFER_SAMPLER: "1"
+
+# vLLM 参数
+model: cyankiwi/Qwen3.6-27B-AWQ-INT4
+dtype: bfloat16
+quantization: compressed-tensors
+kv-cache-dtype: fp8
+tensor-parallel-size: 2
+disable-custom-all-reduce: true
+gpu-memory-utilization: 0.8349
+max-model-len: 160000
+max-num-seqs: 4
+max-num-batched-tokens: 16384
+block-size: 16
+enable-prefix-caching: true
+enable-chunked-prefill: true
+attention-backend: FLASHINFER
+enable-auto-tool-choice: true
+tool-call-parser: qwen3_coder
+reasoning-parser: qwen3
+speculative-config: '{"method":"mtp","num_speculative_tokens":1}'
+generation-config: vllm
+trust-remote-code: true</code></pre>
+
+<hr>
+
+<h2 id="resources">📚 参考资料</h2>
+<ul>
+  <li><a href="https://www.reddit.com/r/QwenAI/comments/" target="_blank">vLLM 不同 Qwen 3.6 27B 量化版本的差异（Reddit）</a></li>
+  <li><a href="https://qwen.readthedocs.io" target="_blank">Qwen 速度基准测试</a></li>
+  <li><a href="https://docs.vllm.ai" target="_blank">vLLM 2026年4月更新：v0.19.0 特性与升级流程</a></li>
+  <li><a href="https://docs.vllm.ai" target="_blank">vLLM V1 Alpha：vLLM 核心架构的重大升级</a></li>
+  <li><a href="https://docs.vllm.ai" target="_blank">vLLM 2026 更新日志</a></li>
+  <li><a href="https://github.com/vllm-project/vllm/pull/22684" target="_blank">vLLM PR #22684（MTP + FlashInfer MLA 支持）</a></li>
+  <li><a href="https://docs.vllm.ai" target="_blank">vLLM 投机解码性能改进</a></li>
+  <li><a href="https://docs.vllm.ai" target="_blank">vLLM 投机解码文档</a></li>
+  <li><a href="https://docs.vllm.ai" target="_blank">vLLM V1 使用指南</a></li>
+</ul>
+
+<blockquote>
+  如果这篇文章帮你省了几小时翻日志的时间，把它转发给下一个试图让消费级 GPU 做不可能之事的人。
+</blockquote>
+
+<div class="tags">
+  <span>Homelab</span>
+  <span>Infrastructure</span>
+  <span>AI</span>
+  <span>LLM</span>
+  <span>Self-Hosted</span>
+  <span>DevOps</span>
+</div>
+
+<div class="footer">
+  原文最后更新于 2026年4月26日 · <a href="https://derekarmstrong.dev/blog/running-qwen36-27b-dual-rtx-3090-vllm-v019" target="_blank">查看原文</a>
+</div>
+
+</body>
+</html>

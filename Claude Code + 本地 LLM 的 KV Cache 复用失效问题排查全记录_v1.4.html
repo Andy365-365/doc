@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Claude Code + 本地 LLM 的 KV Cache 复用失效问题排查全记录</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    max-width: 860px; margin: 0 auto; padding: 40px 20px;
+    color: #222; line-height: 1.8; background: #fff;
+    padding-left: 50px;
+  }
+  h1 { text-align: center; margin-bottom: 6px; font-size: 24px; }
+  .meta-info { text-align: right; color: #999; font-size: 13px; margin-bottom: 30px; }
+  h2 { font-size: 20px; margin: 24px 0 12px; line-height: 1.4; }
+  h3 { font-size: 17px; margin: 20px 0 10px; }
+  h4 { font-size: 15px; margin: 16px 0 8px; }
+  h5 { font-size: 14px; margin: 14px 0 6px; }
+  .heading-anchor { visibility: hidden; }
+  h1:hover .heading-anchor, h2:hover .heading-anchor, h3:hover .heading-anchor, h4:hover .heading-anchor, h5:hover .heading-anchor { visibility: visible; }
+  p { margin: 12px 0; }
+  img { max-width: 100%; height: auto; display: block; margin: 16px auto; border-radius: 4px; }
+  figcaption, p[style*="text-align: center"] { text-align: center; color: #888; font-size: 13px; margin: 4px 0 16px; }
+  pre { background: #1e1e1e; padding: 0; border-radius: 6px; overflow: hidden; margin: 16px 0; font-size: 14px; line-height: 1.6; color: #d4d4d4; }
+  pre code { background: none; padding: 16px; display: block; color: inherit; font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace; }
+  code { background: #f0f0f0; padding: 2px 6px; border-radius: 3px; font-size: 14px; }
+  p > code, li > code, td > code, a > code, span > code { background: #e8e8e8; padding: 2px 6px; border-radius: 3px; font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace; font-size: 13.5px; color: #c7254e; border: 1px solid #d0d0d0; }
+  table { border-collapse: collapse; width: 100%; margin: 16px 0; }
+  th, td { border: 1px solid #ddd; padding: 8px 12px; text-align: left; }
+  th { background: #f6f6f6; font-weight: 600; }
+  tr:nth-child(even) { background: #fafafa; }
+  ul, ol { padding-left: 24px; margin: 12px 0; }
+  li { margin: 4px 0; }
+  blockquote { border-left: 4px solid #0066ff; padding: 8px 16px; margin: 16px 0; background: #f8f9fa; color: #555; }
+  hr { border: none; border-top: 1px solid #eee; margin: 24px 0; }
+  /* 目录面板 */
+  #toc-wrapper {
+    position: fixed; left: 0; top: 0; width: 280px; height: 100vh;
+    transform: translateX(0); transition: transform 0.3s ease; z-index: 9999;
+  }
+  #toc-wrapper.collapsed { transform: translateX(-100%); }
+  #toc {
+    position: absolute; top: 0; bottom: 0; width: 100%;
+    background: #f8f9fa; border-right: 1px solid #eee;
+    overflow-y: auto; padding: 20px 16px;
+  }
+  #toc-toggle {
+    position: absolute; right: -40px; top: 16px; width: 36px; height: 36px;
+    background: #222; color: #fff; border: none; border-radius: 0 4px 4px 0;
+    cursor: pointer; font-size: 18px; z-index: 10000;
+    display: flex; align-items: center; justify-content: center;
+  }
+  #toc-toggle:hover { background: #444; }
+  #toc ul { list-style: none; padding: 0; }
+  #toc li { margin: 3px 0; }
+  #toc a { color: #0066ff; text-decoration: none; font-size: 13px; display: block; padding: 2px 4px; border-radius: 3px; }
+  #toc a:hover { background: #e8f0fe; }
+  #sources { margin-top: 40px; padding-top: 20px; border-top: 2px solid #eee; color: #999; font-size: 13px; }
+  #sources h3 { font-size: 14px; margin-bottom: 8px; }
+  #sources ul { list-style: none; padding: 0; }
+  #sources li { margin: 2px 0; }
+  #sources a { color: #0066ff; text-decoration: none; }
+  #sources a:hover { text-decoration: underline; }
+  footer { margin-top: 20px; text-align: center; color: #ccc; font-size: 12px; }
+</style>
+</head>
+<body>
+
+<div id="toc-wrapper" class="collapsed">
+  <button id="toc-toggle" onclick="document.getElementById('toc-wrapper').classList.toggle('collapsed')">☰</button>
+  <nav id="toc">
+    <h3 style="margin:0 0 12px;font-size:15px;color:#222;line-height:1.4;">Claude Code + 本地 LLM 的 KV Cache 复用失效问题排查全记录</h3>
+    <ul>
+
+    <li style="padding-left:16px;"><a href="#sec-1">Claude Code + 本地 
+              LLM 
+               的 KV Cache 复用失效问题排查全记录</a></li>
+    <li style="padding-left:32px;"><a href="#sec-2">一、问题现象</a></li>
+    <li style="padding-left:32px;"><a href="#sec-3">二、初步分析：理解 KV Cache 与 Prompt Cache 复用机制</a></li>
+    <li style="padding-left:48px;"><a href="#sec-4">2.1 KV Cache</a></li>
+    <li style="padding-left:48px;"><a href="#sec-5">2.2 LCP (Longest Common Prefix) 相似度匹配</a></li>
+    <li style="padding-left:48px;"><a href="#sec-6">2.3 Context Checkpoint</a></li>
+    <li style="padding-left:48px;"><a href="#sec-7">2.4 Slot 管理</a></li>
+    <li style="padding-left:32px;"><a href="#sec-8">三、故障诊断：缩小排查范围</a></li>
+    <li style="padding-left:48px;"><a href="#sec-9">3.1 初步使用的模型——Qwen3.6-35B-A3B</a></li>
+    <li style="padding-left:48px;"><a href="#sec-10">3.2 第二步：观察 llama.cpp 日志</a></li>
+    <li style="padding-left:48px;"><a href="#sec-11">3.3 第三步：怀疑 Claude Code 的 Attribution Header</a></li>
+    <li style="padding-left:48px;"><a href="#sec-12">3.4 第四步：资料检索——发现社区已知问题</a></li>
+    <li style="padding-left:32px;"><a href="#sec-13">四、测试验证：逐步定位有效参数</a></li>
+    <li style="padding-left:48px;"><a href="#sec-14">4.1 第一次尝试：--checkpoint-every-nb 3（失败）</a></li>
+    <li style="padding-left:48px;"><a href="#sec-15">4.2 第二次尝试：完整参数组合（成功）</a></li>
+    <li style="padding-left:32px;"><a href="#sec-16">五、参数必要性分析：哪些是真正需要的？</a></li>
+    <li style="padding-left:48px;"><a href="#sec-17">5.1 逐个分析</a></li>
+    <li style="padding-left:48px;"><a href="#sec-18">5.2 回到 LM Studio 的验证</a></li>
+    <li style="padding-left:48px;"><a href="#sec-19">5.3 回到 llama.cpp 的验证</a></li>
+    <li style="padding-left:48px;"><a href="#sec-20">5.4 最终确认</a></li>
+    <li style="padding-left:32px;"><a href="#sec-21">六、最终结论</a></li>
+    <li style="padding-left:48px;"><a href="#sec-22">6.1 根因</a></li>
+    <li style="padding-left:48px;"><a href="#sec-23">6.2 修复方案</a></li>
+    <li style="padding-left:48px;"><a href="#sec-24">6.3 性能提升</a></li>
+    <li style="padding-left:32px;"><a href="#sec-25">七、踩坑经验总结</a></li>
+    <li style="padding-left:32px;"><a href="#sec-26">附录：关键日志对比</a></li>
+    <li style="padding-left:48px;"><a href="#sec-27">修复前（Cache 失效）</a></li>
+    <li style="padding-left:48px;"><a href="#sec-28">修复后 - llama.cpp（最简配置，Cache 命中）</a></li>
+    <li style="padding-left:48px;"><a href="#sec-29">修复后 - LM Studio（Cache 命中）</a></li>
+    <li style="padding-left:32px;"><a href="#sec-30">笔者补充：</a></li>
+    <li style="border-top:1px solid #ddd;margin-top:12px;padding-top:8px;"><a href="#sources" style="color:#999;font-size:12px;">来源</a></li>
+    </ul>
+  </nav>
+</div>
+
+<h1>Claude Code + 本地 LLM 的 KV Cache 复用失效问题排查全记录</h1>
+<div class="meta-info"><span style="color:#888;">DarkAthena</span> &middot; 修改时间: 2026-05-06 01:04:43</div>
+<div style="margin-top:4px;font-size:12px;color:#999;">文章标签：#AI</div>
+
+
+                    <svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+                        <path stroke-linecap="round" d="M5,0 0,2.5 5,5z" id="raphael-marker-block" style="-webkit-tap-highlight-color: rgba(0, 0, 0, 0);"></path>
+                    </svg>
+                    <h2 id="sec-1"><a name="t0"></a><span class="words-blog hl-git-1" data-tit="Claude Code" data-pretit="claude code">Claude Code</span> + 本地 <span style="color: #FC5531" class="new-words-blog" data-href="https://so.csdn.net/so/search?q=llm" data-report-click="{&quot;spm&quot;:&quot;3001.11407&quot;,&quot;dest&quot;:&quot;https://so.csdn.net/so/search?q=llm&quot;,&quot;extra&quot;:{&quot;wordId&quot;:3169,&quot;businessId&quot;:1,&quot;word&quot;:&quot;llm&quot;,&quot;blogTemplateId&quot;:-1}}" data-report-query="spm=1001.2101.3001.11407" data-tit="LLM">
+              LLM <i style="background-image: url(https://i-operation.csdnimg.cn/images/e7c3df7a602f4267be505af7ecfc3f88.png);" alt="LLM" class="words-blog-icon"></i>
+              </span> 的 KV Cache 复用失效问题排查全记录<a href="#sec-1" class="heading-anchor" style="color: rgb(204, 204, 204); margin-left: 4px; text-decoration: none;"> #</a></h2> 
+<blockquote> 
+ <p><strong>环境信息</strong></p> 
+ <ul><li><strong>Claude Code</strong>: v2.1.114 (macos)</li><li><strong>LLM 后端</strong>: LM Studio (v0.4.12) / llama.cpp (8853)</li><li><strong>模型</strong>: Qwen3-Coder-Next-Q4_K_M.gguf（Hybrid 注意力架构，含 SWA 层）</li><li><strong>硬件</strong>: AMD AI MAX 395（128GB vRAM ）</li><li><strong>操作系统</strong>: Windows 11</li><li><strong>上下文窗口</strong>: 262144 tokens</li></ul> 
+</blockquote> 
+<hr> 
+<h3 id="sec-2"><a name="t1"></a>一、问题现象<a href="#sec-2" class="heading-anchor" style="color: rgb(204, 204, 204); margin-left: 4px; text-decoration: none;"> #</a></h3> 
+<p>在使用 Claude Code 连接本地 LLM 后端进行日常开发时，发现每次对话轮次都存在严重的性能问题：</p> 
+<p><strong>正常预期</strong>：Claude Code 采用增量对话模式，每一轮仅向 <span class="words-blog hl-git-1" data-tit="prompt" data-pretit="prompt">prompt</span> 末尾追加几十到几百个 token。LLM 服务端应复用上一轮已计算的 KV Cache，仅对新增 token 进行 prompt evaluation，耗时应在亚秒级。</p> 
+<p><strong>实际表现</strong>：每一次请求都触发了<strong>完整的 prompt 重新处理</strong>，约 24K tokens 的 prompt evaluation 耗时长达 <strong>55 秒</strong>，而新增 token 仅 30-50 个。这意味着 KV Cache 完全未被复用，每轮对话都在白白浪费算力。</p> 
+<p><span class="words-blog hl-git-1" data-tit="llama.cpp" data-pretit="llama.cpp">llama.cpp</span> 服务端日志中的关键报错：</p> 
+<pre data-index="0" name="code"><code class="">slot 0 :KV cache reuse failed. Forcing full prompt re-processing.
+n_past = 21, n_checkpoint = 8191
+reason: no matching checkpoint found. common_prefix = 0
+</code></pre> 
+<p>这表明尽管前后请求的 prompt 有极高的前缀重叠（理论上 &gt;99%），但<span style="color: #FC5531" class="new-words-blog" data-href="https://so.csdn.net/so/search?q=缓存" data-report-click="{&quot;spm&quot;:&quot;3001.11407&quot;,&quot;dest&quot;:&quot;https://so.csdn.net/so/search?q=缓存&quot;,&quot;extra&quot;:{&quot;wordId&quot;:4989,&quot;businessId&quot;:1,&quot;word&quot;:&quot;缓存&quot;,&quot;blogTemplateId&quot;:-1}}" data-report-query="spm=1001.2101.3001.11407" data-tit="缓存">
+              缓存 <i style="background-image: url(https://i-operation.csdnimg.cn/images/e7c3df7a602f4267be505af7ecfc3f88.png);" alt="缓存" class="words-blog-icon"></i>
+              </span>复用机制完全失效。</p> 
+<hr> 
+<h3 id="sec-3"><a name="t2"></a>二、初步分析：理解 KV Cache 与 Prompt Cache 复用机制<a href="#sec-3" class="heading-anchor" style="color: rgb(204, 204, 204); margin-left: 4px; text-decoration: none;"> #</a></h3> 
+<p>在深入排查之前，先梳理 LLM 推理中的关键概念：</p> 
+<h4 id="sec-4"><a name="t3"></a>2.1 KV Cache<a href="#sec-4" class="heading-anchor" style="color: rgb(204, 204, 204); margin-left: 4px; text-decoration: none;"> #</a></h4> 
+<p>Transformer 模型在推理时，每一层的 Key 和 Value 矩阵可以被缓存。当新请求的 prompt 前缀与之前请求相同时，已缓存的 KV 状态可以直接复用，无需重新计算。</p> 
+<h4 id="sec-5"><a name="t4"></a>2.2 LCP (Longest Common Prefix) 相似度匹配<a href="#sec-5" class="heading-anchor" style="color: rgb(204, 204, 204); margin-left: 4px; text-decoration: none;"> #</a></h4> 
+<p>llama.cpp 使用 LCP 相似度算法来决定是否复用某个 slot 的缓存：</p> 
+<ul><li><strong>sim</strong>：两个 prompt 的最长公共前缀占比（0~1），阈值默认为 <strong>0.1</strong></li><li><strong>f_keep</strong>：可保留的缓存 fraction（考虑 checkpoint 位置）</li><li>当 <code>sim &gt;= 0.1</code> 且 <code>f_keep &gt; 0</code> 时，才会尝试复用缓存</li></ul> 
+<h4 id="sec-6"><a name="t5"></a>2.3 Context Checkpoint<a href="#sec-6" class="heading-anchor" style="color: rgb(204, 204, 204); margin-left: 4px; text-decoration: none;"> #</a></h4> 
+<p>KV Cache 在特定 token 位置建立检查点（snapshot），默认每 <strong>8192 tokens</strong> 一个。复用时只能从最近的检查点位置开始，检查点之前的部分可以完整复用，之后的需要重新计算。</p> 
+<h4 id="sec-7"><a name="t6"></a>2.4 Slot 管理<a href="#sec-7" class="heading-anchor" style="color: rgb(204, 204, 204); margin-left: 4px; text-decoration: none;"> #</a></h4> 
+<p>llama.cpp 默认分配多个 slot（通常 4 个）以支持并行请求。Slot 选择策略有：</p> 
+<ul><li><strong>LRU (Least Recently Used)</strong>：选择最久未使用的 slot</li><li><strong>LCP Similarity</strong>：选择与当前请求前缀最相似的 slot</li></ul> 
+<hr> 
+<h3 id="sec-8"><a name="t7"></a>三、故障诊断：缩小排查范围<a href="#sec-8" class="heading-anchor" style="color: rgb(204, 204, 204); margin-left: 4px; text-decoration: none;"> #</a></h3> 
+<h4 id="sec-9"><a name="t8"></a>3.1 初步使用的模型——Qwen3.6-35B-A3B<a href="#sec-9" class="heading-anchor" style="color: rgb(204, 204, 204); margin-left: 4px; text-decoration: none;"> #</a></h4> 
+<p>排查初期，我们首先使用的模型是 <strong>Qwen3.6-35B-A3B</strong>（<span style="color: #4F46E5" class="new-words-blog" data-href="https://taotoken.net/?utm_source=tt_blog_hwi&amp;utm_term=moe" data-report-view="{&quot;spm&quot;:&quot;3001.11407&quot;,&quot;dest&quot;:&quot;https://taotoken.net/?utm_source=tt_blog_hwi&amp;utm_term=moe&quot;,&quot;extra&quot;:{&quot;wordId&quot;:140637,&quot;businessId&quot;:6,&quot;word&quot;:&quot;moe&quot;,&quot;blogTemplateId&quot;:-1}}" data-report-click="{&quot;spm&quot;:&quot;3001.11407&quot;,&quot;dest&quot;:&quot;https://taotoken.net/?utm_source=tt_blog_hwi&amp;utm_term=moe&quot;,&quot;extra&quot;:{&quot;wordId&quot;:140637,&quot;businessId&quot;:6,&quot;word&quot;:&quot;moe&quot;,&quot;blogTemplateId&quot;:-1}}" data-report-query="spm=1001.2101.3001.11407" data-tit="MoE">
+              MoE <i style="background-image: url(https://i-operation.csdnimg.cn/images/7f533e06978e4b73acc2236e7daf01bd.png);" alt="MoE" class="words-blog-icon"></i>
+              </span> 架构）。LM <span class="words-blog hl-git-1" data-report-view="{&quot;spm&quot;:&quot;1001.2101.3001.10283&quot;,&quot;extra&quot;:&quot;{\&quot;words\&quot;:\&quot;Studio\&quot;,\&quot;isNewGitCodeAB\&quot;:1}&quot;}" data-tit="Studio" data-pretit="studio">Studio</span> 日志中出现了一条令人困惑的信息：</p> 
+<pre data-index="1" name="code"><code class="">cache reuse is not supported - ignoring n_cache_reuse = 256
+</code></pre> 
+<p>初看这条日志，很容易得出"该模型不支持 KV Cache 复用"的结论。但<strong>后续验证</strong>表明<strong>这是一个误导</strong>。</p> 
+<p><strong>实际验证</strong>：在对话达到 91 条消息（~50K+ tokens）时，prompt processing 从 0% 到 100% 仍在 <strong>&lt;1 秒</strong>内完成，完全不可能是全量重处理。日志也确认 LCP slot 选择正常命中（<code>sim_best = 0.999, f_keep = 1.000</code>），连续多轮请求都是如此。</p> 
+<blockquote> 
+ <p><strong><code>cache reuse is not supported</code> 的真实含义</strong>：这条日志指的是不支持 llama.cpp 的 <strong><code>n_cache_reuse</code></strong> 批量化 KV 复用机制（一种更激进的跨批次缓存复用优化），而非不支持 KV Cache 本身。LM Studio 内部的 <strong>checkpoint-based KV state 恢复</strong>仍然生效——只要 LCP 选中同一个 slot 且 <code>f_keep = 1.000</code>，KV 状态就会从上一个 checkpoint 位置直接恢复，跳过已处理部分。</p> 
+</blockquote> 
+<p><strong>教训</strong>：日志中 <code>cache reuse is not supported</code> 不等于"完全不能用 cache"。需要结合实际 prompt processing 耗时和 <code>sim_best</code>/<code>f_keep</code> 指标综合判断。</p> 
+<h4 id="sec-10"><a name="t9"></a>3.2 第二步：观察 llama.cpp 日志<a href="#sec-10" class="heading-anchor" style="color: rgb(204, 204, 204); margin-left: 4px; text-decoration: none;"> #</a></h4> 
+<p>切换到 llama.cpp 后端运行，日志显示：</p> 
+<pre data-index="2" name="code"><code class="">slot 0: evaluating [  0, 8191) ... done.
+slot 0: checkpoint at 8191
+slot 0: evaluating [  8191, 16383) ... done.
+slot 0: checkpoint at 16383
+slot 0: evaluating [ 16383, 24510) ... done.
+slot 0: checkpoint at 24510
+
+-- 下一轮请求 --
+slot 0: KV cache reuse failed. n_past = 21
+</code></pre> 
+<p>关键发现：</p> 
+<ol><li>检查点分别在 8191、16383、24510 位置，但 <code>n_past</code> 仅为 <strong>21</strong>（这意味着只有 21 个 token 被认为可复用）</li><li><code>common_prefix = 0</code>，说明前缀匹配完全失败</li><li>日志中提到 “SWA/hybrid memory” 作为原因</li></ol> 
+<h4 id="sec-11"><a name="t10"></a>3.3 第三步：怀疑 Claude Code 的 Attribution <span class="words-blog hl-git-1" data-report-view="{&quot;spm&quot;:&quot;1001.2101.3001.10283&quot;,&quot;extra&quot;:&quot;{\&quot;words\&quot;:\&quot;Header\&quot;,\&quot;isNewGitCodeAB\&quot;:1}&quot;}" data-tit="Header" data-pretit="header">Header</span><a href="#sec-11" class="heading-anchor" style="color: rgb(204, 204, 204); margin-left: 4px; text-decoration: none;"> #</a></h4> 
+<p>Claude Code ≥2.1.36 版本会在每次请求的 prompt 前端注入一个 <strong>Attribution Header</strong>，包含<span style="color: #FC5531" class="new-words-blog" data-href="https://so.csdn.net/so/search?q=时间戳" data-report-view="{&quot;spm&quot;:&quot;3001.11407&quot;,&quot;dest&quot;:&quot;https://so.csdn.net/so/search?q=时间戳&quot;,&quot;extra&quot;:{&quot;wordId&quot;:405,&quot;businessId&quot;:1,&quot;word&quot;:&quot;时间戳&quot;,&quot;blogTemplateId&quot;:-1}}" data-report-click="{&quot;spm&quot;:&quot;3001.11407&quot;,&quot;dest&quot;:&quot;https://so.csdn.net/so/search?q=时间戳&quot;,&quot;extra&quot;:{&quot;wordId&quot;:405,&quot;businessId&quot;:1,&quot;word&quot;:&quot;时间戳&quot;,&quot;blogTemplateId&quot;:-1}}" data-report-query="spm=1001.2101.3001.11407" data-tit="时间戳">
+              时间戳 <i style="background-image: url(https://i-operation.csdnimg.cn/images/e7c3df7a602f4267be505af7ecfc3f88.png);" alt="时间戳" class="words-blog-icon"></i>
+              </span>等信息：</p> 
+<pre data-index="3" name="code"><code class="">[Antropic] Claude Code v2.1.114 (2026-04-20T14:30:00+08:00)
+</code></pre> 
+<p>由于时间戳每秒变化，这会导致 prompt 的<strong>最前面几个 token 就不同</strong>，直接破坏前缀匹配。</p> 
+<h4 id="sec-12"><a name="t11"></a>3.4 第四步：资料检索——发现社区已知问题<a href="#sec-12" class="heading-anchor" style="color: rgb(204, 204, 204); margin-left: 4px; text-decoration: none;"> #</a></h4> 
+<p>通过 Web 搜索，找到了关键参考：</p> 
+<ul><li><strong>syoyo（zenn.dev）的文章</strong>：<a href="https://zenn.dev/syoyo/articles/188508eb6ab389" rel="nofollow">Claude Codeにおけるllama.cppのQwen3.5 KVキャッシュ無効化問題と対策</a> — 详细描述了 Claude Code + llama.cpp 的 KV Cache 失效问题，并给出了 <code>--checkpoint-every-n-tokens</code> 参数的解决方案</li><li><strong>llama.cpp 官方 Discussion</strong>：<a href="https://github.com/ggml-org/llama.cpp/discussions/13606">Tutorial: KV cache reuse with llama-server</a> — llama.cpp KV Cache 复用机制官方教程</li><li><strong>Unsloth 中文指南</strong>：<a href="https://unsloth.ai/docs/zh/ji-chu/claude-code" rel="nofollow">如何使用 Claude Code 运行本地 LLM</a> — 首次大规模披露了 Claude Code Attribution Header 导致 KV Cache 失效的问题</li><li><strong>Hacker News 讨论</strong>：<a href="https://news.ycombinator.com/item?id=47327870" rel="nofollow">Claude Code makes local LLMs 90% slower</a> — 社区广泛讨论，确认了 <code>CLAUDE_CODE_ATTRIBUTION_HEADER=0</code> 的修复方案</li><li><strong>Claude Code Tools 集成文档</strong>：<a href="https://pchalasani.github.io/claude-code-tools/integrations/local-llms/" rel="nofollow">Local LLMs | claude-code-tools</a> — 详细解释了 Attribution Header 的机制和影响</li></ul> 
+<p>syoyo 的文章提到使用 <code>--checkpoint-every-nb 3</code> 参数（注意：这个参数名后来被证明是过时的）。</p> 
+<hr> 
+<h3 id="sec-13"><a name="t12"></a>四、测试验证：逐步定位有效参数<a href="#sec-13" class="heading-anchor" style="color: rgb(204, 204, 204); margin-left: 4px; text-decoration: none;"> #</a></h3> 
+<h4 id="sec-14"><a name="t13"></a>4.1 第一次尝试：<code>--checkpoint-every-nb 3</code>（失败）<a href="#sec-14" class="heading-anchor" style="color: rgb(204, 204, 204); margin-left: 4px; text-decoration: none;"> #</a></h4> 
+<pre data-index="4" name="code"><code class="language-powershell">.\llama-server.exe `
+  -m "Qwen3-Coder-Next-Q4_K_M.gguf" `
+  --port 1234 --host 0.0.0.0 `
+  --no-context-shift --swa-full `
+  -c 262144 -ngl 99 `
+  --parallel 1 `
+  --checkpoint-every-nb 3
+</code></pre> 
+<p>结果：<strong>报错</strong> <code>error: invalid argument: --checkpoint-every-nb</code></p> 
+<blockquote> 
+ <p><strong>教训</strong>：社区文章中的参数名可能已过时。通过 <code>llama-server.exe --help | findstr checkpoint</code> 查到正确参数名为 <code>--checkpoint-every-n-tokens</code>。</p> 
+</blockquote> 
+<h4 id="sec-15"><a name="t14"></a>4.2 第二次尝试：完整参数组合（成功）<a href="#sec-15" class="heading-anchor" style="color: rgb(204, 204, 204); margin-left: 4px; text-decoration: none;"> #</a></h4> 
+<pre data-index="5" name="code"><code class="language-powershell">.\llama-server.exe `
+  -m "Qwen3-Coder-Next-Q4_K_M.gguf" `
+  --port 1234 --host 0.0.0.0 `
+  --no-context-shift --swa-full `
+  -c 262144 -ngl 99 `
+  --parallel 1 `
+  --checkpoint-every-n-tokens 3
+</code></pre> 
+<p>结果：<strong>Cache 复用成功！</strong></p> 
+<pre data-index="6" name="code"><code class="">slot 0: sim_best = 1.000, f_keep = 1.000
+slot 0: n_past = 23881, new tokens = 124
+prompt eval: 786ms  (之前: 55s)
+</code></pre> 
+<p>Prompt evaluation 从 55 秒骤降至 786 毫秒，验证了 KV Cache 正常工作。</p> 
+<hr> 
+<h3 id="sec-16"><a name="t15"></a>五、参数必要性分析：哪些是真正需要的？<a href="#sec-16" class="heading-anchor" style="color: rgb(204, 204, 204); margin-left: 4px; text-decoration: none;"> #</a></h3> 
+<p>问题解决后，回头审视——我们调整了很多东西（切换后端、改并发度、加参数），<strong>真的都需要吗？</strong></p> 
+<h4 id="sec-17"><a name="t16"></a>5.1 逐个分析<a href="#sec-17" class="heading-anchor" style="color: rgb(204, 204, 204); margin-left: 4px; text-decoration: none;"> #</a></h4> 
+<div class="table-box"><table><thead><tr><th>参数</th><th>作用</th><th>对 Cache 复用的贡献</th></tr></thead><tbody><tr><td><code>CLAUDE_CODE_ATTRIBUTION_HEADER=0</code></td><td>禁用 Claude Code 注入的时间戳 header</td><td>✅ <strong>唯一关键配置</strong>。消除 prompt 前缀变化，解决根因</td></tr><tr><td><code>--parallel 1</code></td><td>单 slot 运行</td><td>❌ 不需要。llama.cpp 新版本已内置 LCP 相似度 slot 选择，能自动路由到缓存命中的 slot</td></tr><tr><td><code>--checkpoint-every-n-tokens 3</code></td><td>缩小检查点间隔至 3 tokens</td><td>❌ 不需要。默认 8192 间隔配合 LCP 匹配已足够（<code>f_keep = 1.000</code>）</td></tr><tr><td><code>--no-context-shift</code></td><td>禁止上下文滚动</td><td>❌ 无关。25K/262K 远未触达上下文限制</td></tr><tr><td><code>--swa-full</code></td><td>SWA 层使用完整上下文</td><td>❌ 影响模型质量，不影响缓存机制</td></tr><tr><td>从 LM Studio 切换到 llama.cpp</td><td>调试需要</td><td>❌ 两者都仅需 <code>CLAUDE_CODE_ATTRIBUTION_HEADER=0</code></td></tr></tbody></table></div>
+<h4 id="sec-18"><a name="t17"></a>5.2 回到 LM Studio 的验证<a href="#sec-18" class="heading-anchor" style="color: rgb(204, 204, 204); margin-left: 4px; text-decoration: none;"> #</a></h4> 
+<p>切回 LM Studio 后端，开启 <strong>4 个并行 slot</strong>，<strong>仅配置</strong> <code>CLAUDE_CODE_ATTRIBUTION_HEADER=0</code>。</p> 
+<pre data-index="7" name="code"><code class="">sim_best = 0.997, f_keep = 1.000
+prompt eval: 786ms, 124 tokens (之前: 53s, 23881 tokens)
+</code></pre> 
+<p><strong>结论：Cache 复用完美工作。</strong></p> 
+<h4 id="sec-19"><a name="t18"></a>5.3 回到 llama.cpp 的验证<a href="#sec-19" class="heading-anchor" style="color: rgb(204, 204, 204); margin-left: 4px; text-decoration: none;"> #</a></h4> 
+<p>切回 llama.cpp 后端，去掉所有额外启动参数，使用最简配置，<strong>仅配置</strong> <code>CLAUDE_CODE_ATTRIBUTION_HEADER=0</code>：</p> 
+<pre data-index="8" name="code"><code class="language-powershell">.\llama-server.exe `
+  -m "Qwen3-Coder-Next-Q4_K_M.gguf" `
+  --port 1234 --host 0.0.0.0 `
+  -c 262144 -ngl 99
+</code></pre> 
+<pre data-index="9" name="code"><code class=""># 第一轮（冷启动）
+prompt eval time = 55531 ms / 24479 tokens    ← 全量处理
+
+# 第二轮起
+task 44:  prompt eval =  994 ms /  34 tokens  ← sim_best=0.999, f_keep=1.000
+task 70:  prompt eval =  278 ms /  25 tokens  ← sim_best=0.999, f_keep=1.000
+task 117: prompt eval =  456 ms /  59 tokens  ← sim_best=0.998, f_keep=1.000
+task 176: prompt eval =  466 ms /  59 tokens  ← sim_best=0.998, f_keep=1.000
+</code></pre> 
+<p><strong>结论：同样完美工作！</strong> llama.cpp 新版本已内置 LCP 相似度 slot 选择和 prompt cache 机制（启动时可见 <code>prompt cache is enabled</code>），无需手动 <code>--parallel 1</code> 或调小 checkpoint 间隔。</p> 
+<h4 id="sec-20"><a name="t19"></a>5.4 最终确认<a href="#sec-20" class="heading-anchor" style="color: rgb(204, 204, 204); margin-left: 4px; text-decoration: none;"> #</a></h4> 
+<p><strong>无论 LM Studio 还是 llama.cpp，无论 4 并行 slot 还是默认配置，KV Cache 复用的唯一必要条件就是 <code>CLAUDE_CODE_ATTRIBUTION_HEADER=0</code>。</strong></p> 
+<hr> 
+<h3 id="sec-21"><a name="t20"></a>六、最终结论<a href="#sec-21" class="heading-anchor" style="color: rgb(204, 204, 204); margin-left: 4px; text-decoration: none;"> #</a></h3> 
+<h4 id="sec-22"><a name="t21"></a>6.1 根因<a href="#sec-22" class="heading-anchor" style="color: rgb(204, 204, 204); margin-left: 4px; text-decoration: none;"> #</a></h4> 
+<p><strong>Claude Code v2.1.36+ 默认在每次请求中注入包含时间戳的 Attribution Header，导致 prompt 前缀逐次变化，LCP 相似度降至 0.086（远低于 0.1 阈值），KV Cache 复用完全失效。</strong></p> 
+<h4 id="sec-23"><a name="t22"></a>6.2 修复方案<a href="#sec-23" class="heading-anchor" style="color: rgb(204, 204, 204); margin-left: 4px; text-decoration: none;"> #</a></h4> 
+<p><strong>仅需一个配置</strong>：(macos)在 <code>~/.zshrc</code> 中添加：</p> 
+<pre data-index="10" name="code"><code class="language-json">export CLAUDE_CODE_ATTRIBUTION_HEADER=0
+</code></pre> 
+<h4 id="sec-24"><a name="t23"></a>6.3 性能提升<a href="#sec-24" class="heading-anchor" style="color: rgb(204, 204, 204); margin-left: 4px; text-decoration: none;"> #</a></h4> 
+<div class="table-box"><table><thead><tr><th>指标</th><th>修复前</th><th>修复后</th><th>提升</th></tr></thead><tbody><tr><td>Prompt Eval 时间</td><td>~55s (23881 tokens)</td><td>~786ms (124 tokens)</td><td><strong>70x</strong></td></tr><tr><td>每轮对话响应延迟</td><td>&gt;60s</td><td>&lt;5s</td><td><strong>12x+</strong></td></tr><tr><td>GPU 利用率</td><td>低效（重复计算）</td><td>高效（增量计算）</td><td>—</td></tr></tbody></table></div>
+<hr> 
+<h3 id="sec-25"><a name="t24"></a>七、踩坑经验总结<a href="#sec-25" class="heading-anchor" style="color: rgb(204, 204, 204); margin-left: 4px; text-decoration: none;"> #</a></h3> 
+<ol><li><strong><code>cache reuse is not supported</code> 不等于完全不能用 cache</strong>：Qwen3.6-35B-A3B 日志中输出 <code>cache reuse is not supported - ignoring n_cache_reuse = 256</code>，但实际上 checkpoint-based KV state 恢复仍然生效，配置 <code>CLAUDE_CODE_ATTRIBUTION_HEADER=0</code> 后 prompt processing &lt;1s 完成。这条日志仅表示不支持 <code>n_cache_reuse</code> 批量化优化，需结合实际耗时和 <code>sim_best</code>/<code>f_keep</code> 指标综合判断</li><li><strong>社区文章的参数名可能过时</strong>：<code>--checkpoint-every-nb</code> → <code>--checkpoint-every-n-tokens</code>，永远以 <code>--help</code> 输出为准。社区方案中建议的 <code>--parallel 1</code> 和 <code>--checkpoint-every-n-tokens 3</code> 在 llama.cpp 新版本中也已不再必要</li><li><strong>不要过度工程化</strong>：调试时一次性加了 5 个参数，最后发现只需 1 个环境变量。解决问题后必须做减法验证每个参数的必要性</li><li><strong>llama.cpp 新版本已内置 LCP slot 选择和 prompt cache</strong>：启动时可见 <code>prompt cache is enabled</code>，slot 选择日志显示 <code>selected slot by LCP similarity</code>，无需手动 <code>--parallel 1</code></li><li><strong>Claude Code 的 Attribution Header 是个隐蔽的坑</strong>：它只改变了 prompt 最前面几个 token，但足以让整个缓存机制瘫痪（sim 从 0.999 降至 0.086）</li></ol> 
+<hr> 
+<h3 id="sec-26"><a name="t25"></a>附录：关键日志对比<a href="#sec-26" class="heading-anchor" style="color: rgb(204, 204, 204); margin-left: 4px; text-decoration: none;"> #</a></h3> 
+<h4 id="sec-27"><a name="t26"></a>修复前（Cache 失效）<a href="#sec-27" class="heading-anchor" style="color: rgb(204, 204, 204); margin-left: 4px; text-decoration: none;"> #</a></h4> 
+<pre data-index="11" name="code"><code class="">slot 0: KV cache reuse failed. Forcing full prompt re-processing.
+n_past = 21, n_checkpoint = 8191
+reason: no matching checkpoint found. common_prefix = 0
+slot 0: evaluating [  0,  8191) ... done.     ← 重新处理全部
+slot 0: evaluating [  8191,  16383) ... done.
+slot 0: evaluating [ 16383,  24510) ... done.
+prompt eval time: 55.123s
+</code></pre> 
+<h4 id="sec-28"><a name="t27"></a>修复后 - llama.cpp（最简配置，Cache 命中）<a href="#sec-28" class="heading-anchor" style="color: rgb(204, 204, 204); margin-left: 4px; text-decoration: none;"> #</a></h4> 
+<pre data-index="12" name="code"><code class=""># 冷启动
+prompt eval time = 55531 ms / 24479 tokens
+
+# 后续轮次
+slot 1: selected slot by LCP similarity, sim_best = 0.999, f_keep = 1.000
+slot 1: n_tokens = 24564, new_tokens = 25
+prompt eval time = 278 ms / 25 tokens      ← 仅处理新增部分
+</code></pre> 
+<h4 id="sec-29"><a name="t28"></a>修复后 - LM Studio（Cache 命中）<a href="#sec-29" class="heading-anchor" style="color: rgb(204, 204, 204); margin-left: 4px; text-decoration: none;"> #</a></h4> 
+<pre data-index="13" name="code"><code class="">slot 3: sim_best = 0.997, f_keep = 1.000
+prompt eval: 786ms, 124 tokens (之前: 53s, 23881 tokens)
+</code></pre> 
+<hr> 
+<p><em>本文基于 2026-04-20 的实际调试过程整理，Claude Code v2.1.114，模型 Qwen3-Coder-Next-Q4_K_M.gguf。</em></p> 
+<h3 id="sec-30"><a name="t29"></a>笔者补充：<a href="#sec-30" class="heading-anchor" style="color: rgb(204, 204, 204); margin-left: 4px; text-decoration: none;"> #</a></h3> 
+<p>本文是真实的AI对故障进行排查诊断的记录，且文章完全由AI自行整理完成。<br> 笔者后续查了相关资料，claude code接非官方api，最好配上这三个环境变量</p> 
+<pre data-index="14" name="code"><code class="language-bash">export CLAUDE_CODE_ATTRIBUTION_HEADER=0 #关闭计费头
+export CLAUDE_CODE_ENABLE_TELEMETRY=0 #关闭使用情况统计
+export CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC=1 #停止后台ping
+</code></pre> 
+<p>如果未生效，则在<code>.claude/settings.json</code>里配置</p> 
+<pre data-index="15" name="code"><code class="language-json">{...
+
+"env": {
+    "CLAUDE_CODE_ENABLE_TELEMETRY": "0",
+    "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC": "1",
+    "CLAUDE_CODE_ATTRIBUTION_HEADER" : "0"
+},
+...}
+</code></pre> 
+<p>这个问题如果一开始AI就去网上搜索去找相关资料，而不是质疑环境问题或者模型问题，很快就能定位根因。AI折腾半天，自以为是的各种改，而且中间得到了很多错误结论，是靠笔者通过实际测试来确认中间很多修改都是无用功，浪费了很多时间。好在还是有所收获，对kv cache的认知更清楚了一点。</p> 
+<hr> 
+<blockquote> 
+ <ul><li><strong>本文作者：</strong> <a href="https://www.darkathena.top" rel="nofollow">DarkAthena</a></li><li><strong>本文链接：</strong> <a href="https://www.darkathena.top/archives/claude-code-kv-cache-reuse-failure-debug" rel="nofollow">https://www.darkathena.top/archives/claude-code-kv-cache-reuse-failure-debug</a></li><li><strong>版权声明：</strong> 本博客所有文章除特别声明外，均采用<a href="https://creativecommons.org/licenses/by-nc-sa/3.0/" rel="nofollow">CC BY-NC-SA 3.0</a> 许可协议。转载请注明出处</li></ul> 
+</blockquote>
+                
+
+<div id="sources">
+  <h3>来源</h3>
+  <ul>
+    <li><a href="https://blog.csdn.net/wwwwwwgame/article/details/160804263" target="_blank">Claude Code + 本地 LLM 的 KV Cache 复用失效问题排查全记录</a></li>
+  </ul>
+</div>
+
+<footer>
+  <p>由「CSDN 单篇文章保存」脚本自动生成 &middot; 2026/5/13</p>
+</footer>
+</body>
+</html>

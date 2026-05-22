@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Harness工程初探</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    max-width: 860px; margin: 0 auto; padding: 40px 20px;
+    color: #222; line-height: 1.8; background: #fff;
+    padding-left: 50px;
+  }
+  h1 { text-align: center; margin-bottom: 30px; font-size: 24px; }
+  h2 { font-size: 20px; margin: 24px 0 12px; line-height: 1.4; }
+  h3 { font-size: 17px; margin: 20px 0 10px; }
+  h4 { font-size: 15px; margin: 16px 0 8px; }
+  .heading-anchor { visibility: hidden; }
+  h2:hover .heading-anchor, h3:hover .heading-anchor, h4:hover .heading-anchor { visibility: visible; }
+  p { margin: 12px 0; }
+  img { max-width: 100%; height: auto; display: block; margin: 16px auto; border-radius: 4px; }
+  figcaption, p[style*="text-align: center"] { text-align: center; color: #888; font-size: 13px; margin: 4px 0 16px; }
+  pre { background: #f6f6f6; padding: 16px; border-radius: 6px; overflow-x: auto; margin: 16px 0; font-size: 14px; line-height: 1.5; }
+  code { background: #f0f0f0; padding: 2px 6px; border-radius: 3px; font-size: 14px; }
+  pre code { background: none; padding: 0; }
+  table { border-collapse: collapse; width: 100%; margin: 16px 0; }
+  th, td { border: 1px solid #ddd; padding: 8px 12px; text-align: left; }
+  th { background: #f6f6f6; font-weight: 600; }
+  tr:nth-child(even) { background: #fafafa; }
+  ul, ol { padding-left: 24px; margin: 12px 0; }
+  li { margin: 4px 0; }
+  blockquote { border-left: 4px solid #0066ff; padding: 8px 16px; margin: 16px 0; background: #f8f9fa; color: #555; }
+  /* 文章发布时间 - 右对齐 */
+  .article-publish-time {
+    float: right; font-size: 12px; color: #999; font-weight: normal; margin-left: 12px;
+  }
+  /* 目录面板 */
+  #toc-wrapper {
+    position: fixed; left: 0; top: 0; width: 280px; height: 100vh;
+    transform: translateX(0); transition: transform 0.3s ease; z-index: 9999;
+  }
+  #toc-wrapper.collapsed { transform: translateX(-100%); }
+  /* 目录面板内容 */
+  #toc {
+    position: absolute; top: 0; bottom: 0; width: 100%;
+    background: #f8f9fa; border-right: 1px solid #eee;
+    overflow-y: auto; padding: 20px 16px;
+  }
+  /* 开关按钮 - 面板右上角外侧 */
+  #toc-toggle {
+    position: absolute; right: -40px; top: 16px; width: 36px; height: 36px;
+    background: #222; color: #fff; border: none; border-radius: 0 4px 4px 0;
+    cursor: pointer; font-size: 18px; z-index: 10000;
+    display: flex; align-items: center; justify-content: center;
+  }
+  #toc-toggle:hover { background: #444; }
+  #toc ul { list-style: none; padding: 0; }
+  #toc li { margin: 3px 0; }
+  #toc a { color: #0066ff; text-decoration: none; font-size: 13px; display: block; padding: 2px 4px; border-radius: 3px; }
+  #toc a:hover { background: #e8f0fe; }
+  #sources { margin-top: 40px; padding-top: 20px; border-top: 2px solid #eee; color: #999; font-size: 13px; }
+  #sources h3 { font-size: 14px; margin-bottom: 8px; }
+  #sources ul { list-style: none; padding: 0; }
+  #sources li { margin: 2px 0; }
+  #sources a { color: #0066ff; text-decoration: none; }
+  #sources a:hover { text-decoration: underline; }
+  footer { margin-top: 20px; text-align: center; color: #ccc; font-size: 12px; }
+</style>
+</head>
+<body>
+
+<div id="toc-wrapper">
+  <button id="toc-toggle" onclick="document.getElementById('toc-wrapper').classList.toggle('collapsed')">☰</button>
+  <nav id="toc">
+    <h3 style="margin:0 0 12px;font-size:15px;color:#222;line-height:1.4;">Harness工程初探</h3>
+    <ul>
+
+    <li style="padding-left:0px;"><a href="#sec-0-1">定义与内涵</a></li>
+    <li style="padding-left:0px;"><a href="#sec-0-2">马鞍与骑手的类比</a></li>
+    <li style="padding-left:0px;"><a href="#sec-0-3">核心公式</a></li>
+    <li style="padding-left:0px;"><a href="#sec-0-4">Harness Engineering 解决的核心问题</a></li>
+    <li style="padding-left:0px;"><a href="#sec-0-5">OpenAI Codex 团队的洞察</a></li>
+    <li style="padding-left:0px;"><a href="#sec-1-1">AI Agent 的发展历程</a></li>
+    <li style="padding-left:0px;"><a href="#sec-1-2">为什么需要 Harness Engineering？</a></li>
+    <li style="padding-left:0px;"><a href="#sec-1-3">驾驭工程的标志性时刻</a></li>
+    <li style="padding-left:0px;"><a href="#sec-2-1">工具编排</a></li>
+    <li style="padding-left:0px;"><a href="#sec-2-2">护栏和安全约束</a></li>
+    <li style="padding-left:0px;"><a href="#sec-2-3">错误恢复和反馈循环</a></li>
+    <li style="padding-left:0px;"><a href="#sec-2-4">可观测性</a></li>
+    <li style="padding-left:0px;"><a href="#sec-2-5">人工检查点</a></li>
+    <li style="padding-left:0px;"><a href="#sec-3-1">前馈与反馈</a></li>
+    <li style="padding-left:0px;"><a href="#sec-3-2">计算型 vs 推理型</a></li>
+    <li style="padding-left:0px;"><a href="#sec-3-3">驾驭循环</a></li>
+    <li style="padding-left:0px;"><a href="#sec-3-4">质量左移</a></li>
+    <li style="padding-left:0px;"><a href="#sec-3-5">可驾驭性</a></li>
+    <li style="padding-left:0px;"><a href="#sec-4-1">OpenAI Codex</a></li>
+    <li style="padding-left:0px;"><a href="#sec-4-2">Claude Code</a></li>
+    <li style="padding-left:0px;"><a href="#sec-4-3">Cursor</a></li>
+    <li style="padding-left:0px;"><a href="#sec-4-4">LangChain &amp; LangGraph</a></li>
+    <li style="padding-left:0px;"><a href="#sec-4-5">CrewAI</a></li>
+    <li style="padding-left:0px;"><a href="#sec-4-6">Letta (MemGPT)</a></li>
+    <li style="padding-left:0px;"><a href="#sec-4-7">GitHub 上的开源资源</a></li>
+    <li style="border-top:1px solid #ddd;margin-top:12px;padding-top:8px;"><a href="#sources" style="color:#999;font-size:12px;">来源</a></li>
+    </ul>
+  </nav>
+</div>
+
+<h1>Harness工程初探</h1>
+
+<p data-first-child="" data-pid="H6b5bigK">Kevin 学习笔记</p><hr><h2 id="sec-0-1" data-into-catalog-status="">定义与内涵<span class="article-publish-time">编辑于 2026-04-10 12:44・北京</span><a href="#sec-0-1" class="heading-anchor" style="color: rgb(204, 204, 204); margin-left: 4px; text-decoration: none;"> #</a></h2><p data-pid="YTOtVkg4"><span data-search-entity="0">Harness Engineering</span>（驾驭工程）是设计围绕 <span data-search-entity="3">AI 代理</span>（Agent）的系统、约束和<span data-search-entity="5">反馈循环</span>的学科，目的是使 AI 代理在生产环境中可靠运行。<br>一个"驾驭器"（Harness）<b>不是代理本身</b>，而是控制代理运作的完整基础设施：</p><ul><li data-pid="s3NfqWen">工具可访问性和权限管理</li><li data-pid="ynPasovY">保持代理安全的护栏</li><li data-pid="IEuHWeQg">帮助代理自我修正的反馈循环</li><li data-pid="XqdkJc5S">让人类监控代理行为的可观测层</li></ul><h2 id="sec-0-2" data-into-catalog-status="">马鞍与骑手的类比<a href="#sec-0-2" class="heading-anchor" style="color: rgb(204, 204, 204); margin-left: 4px; text-decoration: none;"> #</a></h2><p data-pid="pAy71XCF">术语借鉴自骑马装备。马匹强大且快速，但没有缰绳、马鞍和马嚼子，它会随意奔跑。</p><ul><li data-pid="tWLdO19J"><b>AI 模型</b> = 马匹（强大的动力源）</li><li data-pid="rsl1TSSt"><b>驾驭器（Harness）</b> = 所有将其力量引向生产用途的装备</li><li data-pid="pBgcwfLx"><b>工程师</b> = 骑手（提供方向）</li></ul><h2 id="sec-0-3" data-into-catalog-status=""><br>核心公式<a href="#sec-0-3" class="heading-anchor" style="color: rgb(204, 204, 204); margin-left: 4px; text-decoration: none;"> #</a></h2><p data-pid="mKxZopSe"><span data-search-entity="1">Martin Fowler</span> 简洁地定义：<br>Agent = Model + Harness<br>这个公式明确了：一个可靠的 AI 代理由两部分组成——模型本身（如 GPT-4、<span data-search-entity="4">Claude 3</span>）加上围绕它的驾驭系统。</p><h2 id="sec-0-4" data-into-catalog-status="">Harness Engineering 解决的核心问题<a href="#sec-0-4" class="heading-anchor" style="color: rgb(204, 204, 204); margin-left: 4px; text-decoration: none;"> #</a></h2><p data-pid="6QC4RxBj">没有驾驭器的 AI 代理只是一个演示原型，在受控环境中令人印象深刻，但在生产环境中会不可预测地失败。原因包括：<br></p><table data-draft-node="block" data-draft-type="table" data-size="normal" data-row-style="normal"><tbody><tr><td>问题</td><td>说明</td></tr><tr><td>无记忆状态</td><td>原始模型在会话之间没有记忆。代理完成一个任务后开始另一个任务时，一切从零开始</td></tr><tr><td>自信的错误</td><td>语言模型不会说"不知道"，而是产生看似合理但有时错误的输出</td></tr><tr><td>无边界工具访问</td><td>没有护栏的代理可以删除文件、覆盖数据库或泄露凭证</td></tr><tr><td>规模乘数效应</td><td>一个代理犯错可管理，但十个代理并行运行会产生级联故障</td></tr></tbody></table><h2 id="sec-0-5" data-into-catalog-status=""><span data-search-entity="2">OpenAI Codex</span> 团队的洞察<a href="#sec-0-5" class="heading-anchor" style="color: rgb(204, 204, 204); margin-left: 4px; text-decoration: none;"> #</a></h2><p data-pid="9e5SRIf1">OpenAI Codex 团队直接描述了这一转变：<br>"软件工程团队的主要工作不再编写代码，而是设计环境、指定意图，并构建让代理能够可靠工作的反馈循环。"</p>
+<p data-first-child="" data-pid="JSOQEUNd">Kevin学习笔记</p><hr><h2 id="sec-1-1" data-into-catalog-status="">AI Agent 的发展历程<span class="article-publish-time">发布于 2026-04-10 12:50・北京</span><a href="#sec-1-1" class="heading-anchor" style="color: rgb(204, 204, 204); margin-left: 4px; text-decoration: none;"> #</a></h2><p data-pid="o79pIcpT">2024 年前：<span data-search-entity="1">Prompt Engineering</span> 时代</p><ul><li data-pid="moeE5j2H">专注于为单次模型调用设计有效输入</li><li data-pid="MbdqNeYi">简单的"输入 → 输出"模式</li><li data-pid="mgG9oOyA">适用于简单任务，但在复杂任务中失败率高</li></ul><p data-pid="yyeKJMSc">2025 年：<span data-search-entity="3">Context Engineering</span> 兴起</p><ul><li data-pid="q2-Oo6m9">开始关注上下文窗口管理</li><li data-pid="fRpDISSb">RAG（检索增强生成）成为主流</li><li data-pid="7_f-6QVD">代理开始使用工具和外部数据源</li></ul><p data-pid="KH_LU7v1">2026 年：<span data-search-entity="0">Harness Engineering</span> 时代</p><ul><li data-pid="2_4dwKko"><b>系统级思考</b>：不再关注单个提示，而是设计整个系统</li><li data-pid="P1dvRJkj"><b>多会话协调</b>：代理跨多个上下文窗口工作</li><li data-pid="7kN-Gfn7"><b>生产级可靠性</b>：关注错误恢复、可观测性和护栏</li></ul><h2 id="sec-1-2" data-into-catalog-status="">为什么需要 Harness Engineering？<a href="#sec-1-2" class="heading-anchor" style="color: rgb(204, 204, 204); margin-left: 4px; text-decoration: none;"> #</a></h2><p data-pid="uRcxy5ul">AI 模型的能力在飞速提升，但<b>可靠性</b>成为生产部署的最大障碍：</p><ol><li data-pid="5oNxzJmP"><b>模型能力 vs 可靠性差距</b></li><ol><li data-pid="9gz3kjAS"><span data-search-entity="6">GPT-4</span> 可以编写代码，但不能保证代码正确</li><li data-pid="yywZu0Ws"><span data-search-entity="4">Claude</span> 可以搜索网页，但不能保证结果准确</li><li data-pid="tJftzt7J">模型会产生幻觉、重复错误、陷入循环</li></ol><li data-pid="F9H5xdfC"><b>生产环境的严苛要求</b></li><ol><li data-pid="6CstHM4l">客户容忍度：99.9% 正确率 vs 模型的 70-80%</li><li data-pid="t9wSpgb0">合规性：审计日志、权限控制、数据隐私</li><li data-pid="uigN-hzN">可观测性：可追溯的决策过程、错误诊断</li></ol><li data-pid="jGWattLm"><b>多代理协作的复杂性</b></li><ol><li data-pid="hWyNzwVe">单个代理失败影响可控</li><li data-pid="keCrKeaN">十个代理并行运行，级联故障难以调试</li></ol></ol><h2 id="sec-1-3" data-into-catalog-status="">驾驭工程的标志性时刻<a href="#sec-1-3" class="heading-anchor" style="color: rgb(204, 204, 204); margin-left: 4px; text-decoration: none;"> #</a></h2><p data-pid="q1xp8dBE">2025 年底：<span data-search-entity="2">OpenAI Codex</span> 发布<br>OpenAI 发布 Codex，首个大规模生产级驾驭系统：</p><ul><li data-pid="AQfhx_L7">超过 100 万行代码的应用程序，<b>没有一行由人类编写</b></li><li data-pid="-7uZugj2">团队平均每位工程师每天合并 3.5 个 PR</li><li data-pid="H7KtUnWt">通过更好的驾驭设计，团队从 3 人扩大到 7 人，效率反而提升</li></ul><p data-pid="c8Q-ZQrR">2026 年初：行业共识形成</p><ul><li data-pid="TAguC42c"><span data-search-entity="5">Anthropic</span> 发布《有效驾驭长期运行的代理》</li><li data-pid="MO4Qq593">Martin Fowler 撰写《编码代理用户的驾驭工程》</li><li data-pid="ykkB3y_8">LangChain 博客详解《代理驾驭的剖析》</li><li data-pid="vRbDij0i">GitHub 上 <code>awesome-harness-engineering</code> 仓库出现</li></ul>
+<hr><p data-pid="ewHzKE2L">每个<span data-search-entity="3">代理驾驭器</span>，无论简单或复杂，都由相同的<b>五大支柱</b>构建：</p><h2 id="sec-2-1" data-into-catalog-status=""><span data-search-entity="4">工具编排</span><span class="article-publish-time">发布于 2026-04-10 13:03・北京</span><a href="#sec-2-1" class="heading-anchor" style="color: rgb(204, 204, 204); margin-left: 4px; text-decoration: none;"> #</a></h2><p data-pid="JQHU_rvb">代理的能力由它可以访问的工具定义。工具编排包括：</p><ul><li data-pid="qw10ezGz"><b>可用工具定义</b>：哪些工具可用</li><li data-pid="uvuSXfwB"><b>调用规范</b>：如何调用</li><li data-pid="K2NwMExI"><b>权限配置</b>：需要什么权限</li></ul><p data-pid="8b5GGeCm">工具类型示例：</p><table data-draft-node="block" data-draft-type="table" data-size="normal" data-row-style="normal"><tbody><tr><td>工具类型</td><td>示例</td><td>权限需求</td></tr><tr><td>文件系统</td><td>读取/写入文件</td><td>目录级别限制</td></tr><tr><td>Shell 命令</td><td>执行终端命令</td><td>白名单模式</td></tr><tr><td>API 调用</td><td>外部服务集成</td><td>API 密钥管理</td></tr><tr><td>数据库查询</td><td>SQL 执行</td><td>只读/读写权限</td></tr></tbody></table><h2 id="sec-2-2" data-into-catalog-status=""><br>护栏和安全约束<a href="#sec-2-2" class="heading-anchor" style="color: rgb(204, 204, 204); margin-left: 4px; text-decoration: none;"> #</a></h2><p data-pid="D_sQiGrd">护栏是防止代理采取有害行动的确定性规则。它们在多个层面运作：</p><p data-pid="GdVKWRtQ"><b>权限边界</b></p><ul><li data-pid="gtioCQIO">限制可访问的文件、目录或命令</li><li data-pid="GqfItcXP">白名单/黑名单模式</li></ul><p data-pid="MCeSPHv0"><b>验证检查</b></p><ul><li data-pid="tbaUTape"><b><span data-search-entity="1">Linters</span></b>：代码风格检查</li><li data-pid="QB7v5lzn"><b>类型检查器</b>：TypeScript, <span data-search-entity="0">mypy</span></li><li data-pid="0qnUVneh"><b>测试套件</b>：单元测试、集成测试</li></ul><p data-pid="Yh_Ijvst"><b>架构约束</b></p><ul><li data-pid="9egsF8qT">强制依赖边界</li><li data-pid="MEqZsa2D">命名约定</li><li data-pid="xs5LVIB-">模块隔离规则</li></ul><p data-pid="53LhbFOr"><b>速率限制</b></p><ul><li data-pid="-ZAG2ckd">防止无限循环</li><li data-pid="wrCnIyR7">标记使用预算控制</li></ul><h2 id="sec-2-3" data-into-catalog-status="">错误恢复和反馈循环<a href="#sec-2-3" class="heading-anchor" style="color: rgb(204, 204, 204); margin-left: 4px; text-decoration: none;"> #</a></h2><p data-pid="9aqsqTO3">生产代理一定会失败。问题是它们是否能够优雅地失败。<br>错误恢复机制：</p><table data-draft-node="block" data-draft-type="table" data-size="normal" data-row-style="normal"><tbody><tr><td>机制</td><td>说明</td></tr><tr><td>自动重试</td><td>升级策略（简单重试 → 退避 → 失败）</td></tr><tr><td>自我验证循环</td><td>代理在提交前检查自己的工作</td></tr><tr><td>回滚机制</td><td>恢复之前状态</td></tr><tr><td>循环检测</td><td>识别代理陷入重复操作</td></tr></tbody></table><p data-pid="VbBhmVL0">实际案例：<br><span data-search-entity="2">LangChain</span> 的编码代理仅通过改变驾驭器，在 Terminal Bench 2.0 上从 52.8% 跃升至 66.5%（前五名）。关键改进：</p><ul><li data-pid="HLb5JACi">添加自我验证循环</li><li data-pid="2pn6-KG0">添加循环检测</li></ul><h2 id="sec-2-4" data-into-catalog-status="">可观测性<a href="#sec-2-4" class="heading-anchor" style="color: rgb(204, 204, 204); margin-left: 4px; text-decoration: none;"> #</a></h2><p data-pid="A4Tr3Tsf">无法改进无法观察的东西。可观测性意味着：</p><ul><li data-pid="s7AQ_jxw"><b>记录每个代理操作</b></li><li data-pid="yANnlyZn"><b>跟踪令牌使用和成本</b></li><li data-pid="I-ZwoFYg"><b>记录决策点</b></li><li data-pid="JYUXd2Aj"><b>发现异常</b></li></ul><p data-pid="EDFc4OVc">关键问题示例：</p><ul><li data-pid="gQpJ0DZd">代理为什么选择这个工具？</li><li data-pid="Sa754Bzi">通过测试套件需要多少次尝试？</li><li data-pid="-CJmgh9C">代理在工作流程中花费最多令牌的地方在哪里？</li><li data-pid="HcrHxUIf">它最后一次需要人工干预是什么时候？</li></ul><h2 id="sec-2-5" data-into-catalog-status="">人工检查点<a href="#sec-2-5" class="heading-anchor" style="color: rgb(204, 204, 204); margin-left: 4px; text-decoration: none;"> #</a></h2><p data-pid="dEzPiPk7">完全自主很少是合适的。驾驭工程包括设计何时以及如何咨询人类。<br>人工干预层级：</p><table data-draft-node="block" data-draft-type="table" data-size="normal" data-row-style="normal"><tbody><tr><td>层级</td><td>场景</td><td>示例</td></tr><tr><td>显式批准门</td><td>高风险操作</td><td>"代理想运行 rm -rf。批准？"</td></tr><tr><td>定期审查检查点</td><td>长期任务</td><td>每 30 分钟审查进度</td></tr><tr><td>人工审查后备</td><td>自动判断失败</td><td>自动化测试失败，转交人工</td></tr></tbody></table>
+<hr><h2 id="sec-3-1" data-into-catalog-status="">前馈与反馈<span class="article-publish-time">编辑于 2026-04-10 13:12・北京</span><a href="#sec-3-1" class="heading-anchor" style="color: rgb(204, 204, 204); margin-left: 4px; text-decoration: none;"> #</a></h2><p data-pid="khY2F3Dy"><span data-search-entity="0">Martin Fowler</span> 提出了驾驭代理的两个关键控制方式：<br><span data-search-entity="4">前馈控制</span></p><ul><li data-pid="VodMjiPR"><b>目的</b>：预见代理行为并在行动前引导它</li><li data-pid="ItOi22Ok"><b>作用</b>：增加代理在第一次尝试中产生好结果的概率</li><li data-pid="r_9ckbC8"><b>示例</b>：</li><ul><li data-pid="hEOOt8O_">AGENTS.md 文件</li><li data-pid="U5z-uqHn">Skills（技能定义）</li><li data-pid="EU_QnG3i">引导指令</li></ul></ul><p data-pid="Fg9eDguB"><span data-search-entity="5">反馈控制</span></p><ul><li data-pid="6oZpASL4"><b>目的</b>：在代理行动后观察并帮助其自我修正</li><li data-pid="aJejvla-"><b>作用</b>：在问题到达人类之前自我修正</li><li data-pid="PwABtYgS"><b>示例</b>：</li><ul><li data-pid="XnbWx650"><span data-search-entity="1">Linters</span>（代码检查工具）</li><li data-pid="zCiWdijZ">测试套件</li><li data-pid="31tq5qhS">AI 代码审查</li></ul></ul><h2 id="sec-3-2" data-into-catalog-status="">计算型 vs 推理型<a href="#sec-3-2" class="heading-anchor" style="color: rgb(204, 204, 204); margin-left: 4px; text-decoration: none;"> #</a></h2><p data-pid="iBZ-ItW5"><span data-search-entity="3">计算型控制</span></p><table data-draft-node="block" data-draft-type="table" data-size="normal" data-row-style="normal"><tbody><tr><td>特征</td><td>说明</td></tr><tr><td>确定性</td><td>结果可靠</td></tr><tr><td>速度</td><td>毫秒到秒级</td></tr><tr><td>成本</td><td>低</td></tr><tr><td>示例</td><td>测试、linters、类型检查器、结构分析</td></tr></tbody></table><p data-pid="MUYI8104"><br><span data-search-entity="2">推理型控制</span></p><table data-draft-node="block" data-draft-type="table" data-size="normal" data-row-style="normal"><tbody><tr><td>特征</td><td>说明</td></tr><tr><td>非确定性</td><td>结果概率性</td></tr><tr><td>速度</td><td>较慢（GPU/NPU 运行）</td></tr><tr><td>成本</td><td>较高</td></tr><tr><td>示例</td><td><span data-search-entity="6">语义分析</span>、AI 代码审查、"LLM 作为评判者"</td></tr></tbody></table><h2 id="sec-3-3" data-into-catalog-status="">驾驭循环<a href="#sec-3-3" class="heading-anchor" style="color: rgb(204, 204, 204); margin-left: 4px; text-decoration: none;"> #</a></h2><p data-pid="a7vmy-3e">人类的工作是通过迭代驾驭来引导代理。每当问题多次发生时，前馈和反馈控制应该改进，使问题在未来发生的概率降低甚至防止。</p><p data-pid="L_EcAiXC">使用 AI 改进驾驭</p><p data-pid="G4PZocSe">编码代理现在可以以更低的成本构建更多自定义控制和自定义静态分析。代理可以帮助：</p><ul><li data-pid="Fi2D7wT5">编写结构化测试</li><li data-pid="p6bJyJC1">从观察模式生成规则草稿</li><li data-pid="fJfGZP6Z">脚手架自定义 linters</li><li data-pid="2mm511kt">从代码库考古创建操作指南</li></ul><h2 id="sec-3-4" data-into-catalog-status="">质量左移<a href="#sec-3-4" class="heading-anchor" style="color: rgb(204, 204, 204); margin-left: 4px; text-decoration: none;"> #</a></h2><p data-pid="ZI2Nui8U"><span data-search-entity="7">持续集成</span>的团队一直面临挑战：根据成本、速度和关键性将测试、检查和人工审查分布在开发生命周期中。<br>时间分布建议：</p><table data-draft-node="block" data-draft-type="table" data-size="normal" data-row-style="normal"><tbody><tr><td>时间点</td><td>检查类型</td><td>示例</td></tr><tr><td>集成前</td><td>快速检查</td><td>Linters、快速测试套件、基础代码审查代理</td></tr><tr><td>集成后</td><td>昂贵检查</td><td>变异测试、更广泛的代码审查</td></tr><tr><td>持续监控</td><td>漂移检测</td><td>死代码检测、测试覆盖率分析、依赖扫描</td></tr></tbody></table><h2 id="sec-3-5" data-into-catalog-status="">可驾驭性<a href="#sec-3-5" class="heading-anchor" style="color: rgb(204, 204, 204); margin-left: 4px; text-decoration: none;"> #</a></h2><p data-pid="ayk_W_Al">并非每个代码库同样易于驾驭。<br>影响因素：</p><table data-draft-node="block" data-draft-type="table" data-size="normal" data-row-style="normal"><tbody><tr><td>特性</td><td>对驾驭的影响</td></tr><tr><td>强类型语言</td><td>类型检查作为传感器自动可用</td></tr><tr><td>明确定义的模块边界</td><td>架构约束规则可实施</td></tr><tr><td>框架抽象（如 Spring）</td><td>隐藏细节，代理无需担心，增加成功概率</td></tr></tbody></table><p data-pid="zr8ox4z3"><br>绿地 vs 棕地：</p><ul><li data-pid="Yduot3eu"><b>绿地项目</b>：可以从第一天开始构建可驾驭性</li><li data-pid="5dVCekvX"><b>棕地项目</b>：特别是积累了大量技术债务的应用，面临更难的问题：驾驭器最需要的地方恰恰是最难构建的地方</li></ul>
+<p data-first-child="" data-pid="26t0PIXu">Kevin学习笔记</p><hr><h2 id="sec-4-1" data-into-catalog-status=""><span data-search-entity="1">OpenAI Codex</span><span class="article-publish-time">编辑于 2026-04-10 13:25・北京</span><a href="#sec-4-1" class="heading-anchor" style="color: rgb(204, 204, 204); margin-left: 4px; text-decoration: none;"> #</a></h2><p data-pid="_1n452wK">核心特性</p><ul><li data-pid="0a033kBF"><b>AGENTS.md</b>：机器可读的指令文件，告诉代理如何在仓库中工作<br></li><ul><li data-pid="4FWiWxiO">运行哪些命令</li><li data-pid="THgZxB0O">遵循哪些约定</li><li data-pid="uGzc7y6H">使用哪些模式</li></ul><li data-pid="aGvoARyk"><b>可重现的开发环境</b>：</li><ul><li data-pid="wXZGDHhQ">一键启动</li><li data-pid="_GYSUcIN">每个工作树隔离，防止跨任务污染</li></ul><li data-pid="kfYpRS3l"><b>CI 中的机械不变式</b>：</li><ul><li data-pid="8vYJS8xH">在每个边缘强制架构边界</li><li data-pid="Rac0AxXb">格式规则</li><li data-pid="nTdzfF1Q">数据验证</li></ul></ul><p data-pid="d98RfVhE">实际成果</p><ul><li data-pid="GBAIRHhM">超过 100 万行代码的应用，<b>没有一行由人类编写</b></li><li data-pid="ihly3HyZ">团队平均每位工程师每天合并 3.5 个 PR</li><li data-pid="tUmE1RF7">团队从 3 人扩大到 7 人，效率反而提升</li></ul><h2 id="sec-4-2" data-into-catalog-status="">Claude Code<a href="#sec-4-2" class="heading-anchor" style="color: rgb(204, 204, 204); margin-left: 4px; text-decoration: none;"> #</a></h2><p data-pid="R_2CVYQZ"><b>权限模型</b></p><ul><li data-pid="1i41jSOG">默认立场：<b>只读</b>，直到用户授予明确批准</li><li data-pid="bpift_r_">每个文件编辑通过自动快照可逆转</li></ul><p data-pid="3PD5nezR"><b><span data-search-entity="0">Hooks 系统</span></b></p><p data-pid="C_bEDb23">允许用户在代理生命周期的关键点注入自定义脚本，启用：</p><ul><li data-pid="IqvkX_n6">安全扫描</li><li data-pid="K5KQBXLn">Linting</li><li data-pid="3vcIBx_R">策略执行</li></ul><p data-pid="LhtJAk7r"><b>CLAUDE.md 文件</b></p><p data-pid="y6jrM8dO">类似于 AGENTS.md，为代理提供持久的项目特定上下文：</p><ul><li data-pid="c9skcnSr">代码库结构</li><li data-pid="mqN-xJMs">约定</li><li data-pid="0AwcKeZQ">工作流程</li></ul><h2 id="sec-4-3" data-into-catalog-status="">Cursor<a href="#sec-4-3" class="heading-anchor" style="color: rgb(204, 204, 204); margin-left: 4px; text-decoration: none;"> #</a></h2><p data-pid="-yI0AY2a">.cursor/rules 文件<br>基于 Markdown 的配置文件，提供持久指令，塑造代理与代码的工作方式。<br>特性</p><ul><li data-pid="mDYt2lWM"> 版本控制</li><li data-pid="5w7LfSrS"> 文件模式特定</li><li data-pid="Ao_vJuMf"> 始终开启</li><li data-pid="WM7ziQnf"> 提供一致的代码生成指导</li></ul><h2 id="sec-4-4" data-into-catalog-status=""><span data-search-entity="2">LangChain</span> &amp; LangGraph<a href="#sec-4-4" class="heading-anchor" style="color: rgb(204, 204, 204); margin-left: 4px; text-decoration: none;"> #</a></h2><p data-pid="foYLuWFD">LangGraph 特性</p><ul><li data-pid="7rgHhnef"><b>基于状态的有状态编排</b>：多步骤代理工作流</li><li data-pid="FuuNztHz"><b>内置工具路由</b></li><li data-pid="IeKSqvDF"><b>记忆持久化</b></li><li data-pid="YyGwWlvH"><b>基于检查点的错误恢复</b></li></ul><p data-pid="mFeWpW6L"><b>实际案例</b></p><p data-pid="xZ0lrjIh">LangChain 的编码代理仅通过改变驾驭器，在 Terminal Bench 2.0 上从 52.8% 跃升至 66.5%（前五名）。<br>来源：LangChain Blog</p><h2 id="sec-4-5" data-into-catalog-status=""><span data-search-entity="3">CrewAI</span><a href="#sec-4-5" class="heading-anchor" style="color: rgb(204, 204, 204); margin-left: 4px; text-decoration: none;"> #</a></h2><ul><li data-pid="AcX33z3w">多代理编排</li><li data-pid="WIqCy5xW">专业代理（研究员、作家、审查员）协作完成任务。</li><li data-pid="nRx3l41r">Flows 功能（2026 年新增）</li><li data-pid="FcISWtiu">事件驱动的编排层，用于结构化管道。</li></ul><h2 id="sec-4-6" data-into-catalog-status=""><span data-search-entity="4">Letta</span> (MemGPT)<a href="#sec-4-6" class="heading-anchor" style="color: rgb(204, 204, 204); margin-left: 4px; text-decoration: none;"> #</a></h2><p data-pid="z4vwsHFZ">三层记忆架构</p><table data-draft-node="block" data-draft-type="table" data-size="normal" data-row-style="normal"><tbody><tr><td>层级</td><td>功能</td><td>对应驾驭设计</td></tr><tr><td>核心记忆</td><td>当前上下文</td><td>即时状态管理</td></tr><tr><td>档案记忆</td><td>长期存储</td><td>持久化知识库</td></tr><tr><td>召回记忆</td><td>检索机制</td><td>RAG 集成</td></tr></tbody></table><h2 id="sec-4-7" data-into-catalog-status=""><br>GitHub 上的开源资源<a href="#sec-4-7" class="heading-anchor" style="color: rgb(204, 204, 204); margin-left: 4px; text-decoration: none;"> #</a></h2><p data-pid="4Cqbpo3l">awesome-harness-engineering<br>GitHub 仓库，包含：</p><ul><li data-pid="ti8e4shG">代理循环设计</li><li data-pid="9Vr6tkF3">工具设计模式</li><li data-pid="vKbV4o2o">记忆与状态管理</li><li data-pid="X4Y4LQ9W">人工协作模式</li><li data-pid="emsZq9iA">参考实现和教程</li></ul>
+
+<div id="sources">
+  <h3>来源</h3>
+  <ul>
+    <li><a href="https://zhuanlan.zhihu.com/p/2025914580765819381" target="_blank">Harness工程初探（一）：什么是 Harness Engineering？</a></li>
+    <li><a href="https://zhuanlan.zhihu.com/p/2025917257457378469" target="_blank">Harness工程初探（二）：为什么会产生Harness 工程？</a></li>
+    <li><a href="https://zhuanlan.zhihu.com/p/2025918680932828771" target="_blank">Harness工程初探（三）：基本技术原理</a></li>
+    <li><a href="https://zhuanlan.zhihu.com/p/2025922045033064026" target="_blank">Harness工程初探（四）：Harness设计原则</a></li>
+    <li><a href="https://zhuanlan.zhihu.com/p/2025925819646711210" target="_blank">Harness工程初探（五）：实践框架与工具</a></li>
+  </ul>
+</div>
+
+<footer>
+  <p>由「知乎专栏文章抓取合并导出」脚本自动生成 · 2026/5/9</p>
+</footer>
+</body>
+</html>
