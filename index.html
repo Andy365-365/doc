@@ -7,18 +7,12 @@
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{background:#0d1117;color:#c9d1d9;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;height:100vh;display:flex;flex-direction:column;overflow:hidden}
-
-/* Header */
 .header{display:flex;align-items:center;gap:12px;padding:8px 16px;background:#161b22;border-bottom:1px solid #30363d;flex-shrink:0}
 .header h1{font-size:1rem;color:#58a6ff;white-space:nowrap}
 .header .article-title{font-size:0.85rem;color:#8b949e;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .back-btn{display:none;padding:4px 12px;background:#21262d;color:#58a6ff;border:1px solid #30363d;border-radius:6px;cursor:pointer;font-size:0.85rem;white-space:nowrap}
 .back-btn:hover{background:#30363d}
-
-/* Layout */
 .container{display:flex;flex:1;overflow:hidden}
-
-/* Sidebar */
 .sidebar{width:340px;min-width:340px;border-right:1px solid #21262d;display:flex;flex-direction:column;background:#0d1117;overflow:hidden}
 .sidebar-header{padding:12px 16px;border-bottom:1px solid #21262d;display:flex;justify-content:space-between;align-items:center}
 .sidebar-header .count{color:#8b949e;font-size:0.8rem}
@@ -26,8 +20,6 @@ body{background:#0d1117;color:#c9d1d9;font-family:-apple-system,BlinkMacSystemFo
 .search-box input{width:100%;padding:6px 10px;background:#0d1117;border:1px solid #30363d;border-radius:6px;color:#c9d1d9;font-size:0.85rem;outline:none}
 .search-box input:focus{border-color:#58a6ff}
 .article-list{flex:1;overflow-y:auto}
-
-/* Category groups */
 .cat-group{border-bottom:1px solid #21262d}
 .cat-header{display:flex;align-items:center;padding:10px 16px;cursor:pointer;font-size:0.85rem;font-weight:600;color:#8b949e;user-select:none;transition:color 0.15s}
 .cat-header:hover{color:#c9d1d9}
@@ -36,25 +28,18 @@ body{background:#0d1117;color:#c9d1d9;font-family:-apple-system,BlinkMacSystemFo
 .cat-header .cat-count{margin-left:auto;font-size:0.75rem;color:#484f58;font-weight:400}
 .cat-items{overflow:hidden;transition:max-height 0.3s ease}
 .cat-items.collapsed{max-height:0!important}
-
 .article-item{display:flex;align-items:baseline;padding:7px 16px 7px 32px;cursor:pointer;transition:background 0.15s;font-size:0.82rem;line-height:1.3}
 .article-item:hover{background:#161b22}
 .article-item.active{background:#161b22;color:#58a6ff;border-left:3px solid #58a6ff;padding-left:29px}
 .article-item .ver{color:#484f58;font-size:0.7rem;margin-left:auto;flex-shrink:0}
-
-/* Main content */
 .main{flex:1;overflow:hidden;display:flex;flex-direction:column}
 .welcome{display:flex;align-items:center;justify-content:center;flex:1;color:#484f58;font-size:1.1rem;flex-direction:column;gap:12px}
 .welcome .icon{font-size:3rem;opacity:0.5}
 .loading{display:none;align-items:center;justify-content:center;flex:1;color:#8b949e;font-size:0.9rem;flex-direction:column;gap:12px}
 .spinner{width:32px;height:32px;border:3px solid #21262d;border-top-color:#58a6ff;border-radius:50%;animation:spin 0.8s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
-
-/* Reader container */
 .reader{display:none;flex:1;overflow-y:auto;padding:0;position:relative}
 .reader-inner{max-width:960px;margin:0 auto;padding:24px 32px 48px}
-
-/* Reader base styles - article styles override these */
 .reader h1{color:#e6edf3;font-size:1.8rem;margin:24px 0 16px;padding-bottom:12px;border-bottom:1px solid #21262d;line-height:1.3}
 .reader h2{color:#e6edf3;font-size:1.4rem;margin:28px 0 12px;padding-bottom:8px;border-bottom:1px solid #21262d;line-height:1.3}
 .reader h3{color:#e6edf3;font-size:1.15rem;margin:24px 0 10px}
@@ -77,19 +62,11 @@ body{background:#0d1117;color:#c9d1d9;font-family:-apple-system,BlinkMacSystemFo
 .reader pre code{background:none;padding:0;color:#c9d1d9;font-size:0.85rem}
 .reader img{max-width:100%;height:auto;border-radius:8px;margin:16px 0;box-shadow:0 2px 12px rgba(0,0,0,0.4)}
 .reader hr{border:none;border-top:1px solid #21262d;margin:24px 0}
-
-/* Remove the nav link we added to articles */
 .reader > nav{display:none!important}
-
-/* Scrollbar */
 .article-list::-webkit-scrollbar,.reader::-webkit-scrollbar{width:6px}
 .article-list::-webkit-scrollbar-track,.reader::-webkit-scrollbar-track{background:transparent}
 .article-list::-webkit-scrollbar-thumb,.reader::-webkit-scrollbar-thumb{background:#30363d;border-radius:3px}
-
-@media(max-width:768px){
-  .sidebar{width:280px;min-width:280px}
-  .reader-inner{padding:16px 20px}
-}
+@media(max-width:768px){.sidebar{width:280px;min-width:280px}.reader-inner{padding:16px 20px}}
 </style>
 </head>
 <body>
@@ -118,7 +95,7 @@ body{background:#0d1117;color:#c9d1d9;font-family:-apple-system,BlinkMacSystemFo
 </div>
 
 <script>
-const categories = {"vLLM / 推理加速": [["Claude Code + 本地 LLM 的 KV Cache 复用失效问题排查全记录", "Claude Code + 本地 LLM 的 KV Cache 复用失效问题排查全记录_v1.4.html", "1.4"], ["llamacpp-checkpoint-fix-speeds-local-coding-agents-v019", "llamacpp-checkpoint-fix-speeds-local-coding-agents-v019.html", ""], ["qwen36-27b-dual-rtx-3090-vllm-v019", "qwen36-27b-dual-rtx-3090-vllm-v019.html", ""], ["running-qwen36-27b-dual-rtx-3090-vllm-v019", "running-qwen36-27b-dual-rtx-3090-vllm-v019.html", ""], ["从 305 GB 到 7.4 GB：大模型 KVCache 架构演进全景", "从 305 GB 到 7.4 GB：大模型 KVCache 架构演进全景_v1.0.html", "1.0"], ["从30到60 Tokens每秒-如何在双RTX 3090上运行vLLM", "从30到60 Tokens每秒-如何在双RTX 3090上运行vLLM_v2.html", "2"], ["使用 llama.cpp + MTP 分支实现 1.5 倍 Token 输出加速实战指南", "使用 llama.cpp + MTP 分支实现 1.5 倍 Token 输出加速实战指南_v1.2.html", "1.2"]], "Agent / 智能体": [["AI 智能体记忆系统现状深度调研", "AI 智能体记忆系统现状深度调研_v6.21.html", "6.21"], ["Hermes 7 步封神操作：Token 省 80%+ 长期记忆优化", "Hermes 7 步封神操作：Token 省 80_+ 长期记忆优化，效率直接炸裂_v1.3.html", "1.3"], ["Hermes Agent 研究", "Hermes Agent 研究_v6.21.html", "6.21"], ["Hermes Agent爆火，聊聊与OpenClaw 到底区别在哪", "Hermes Agent爆火，聊聊与OpenClaw 到底区别在哪_v1.0.html", "1.0"], ["OpenClaw 深度解构", "OpenClaw 深度解构_v6.21.html", "6.21"], ["OpenClaw深度分析", "OpenClaw深度分析_v6.21.html", "6.21"], ["OpenClaw生态Skill调研", "OpenClaw生态Skill调研_v1.3.html", "1.3"], ["lucebox-hub-readme-翻译", "lucebox-hub-readme-翻译.html", ""], ["lucebox-hub-完整翻译", "lucebox-hub-完整翻译.html", ""], ["如何编写高质量的agent skill？", "如何编写高质量的agent skill？_v6.21.html", "6.21"]], "微调 / Fine-tuning": [["大模型垂直领域微调系列（一）：认识微调", "大模型垂直领域微调系列（一）：认识微调_v1.7.html", "1.7"], ["大模型垂直领域微调系列（二）：ms-swift 框架全景", "大模型垂直领域微调系列（二）：ms-swift 框架全景_v1.7.html", "1.7"], ["大模型垂直领域微调系列（三）：完整实战与最佳实践", "大模型垂直领域微调系列（三）：完整实战与最佳实践_v1.7.html", "1.7"]], "RAG": [["大模型RAG实战 v1.0", "大模型RAG实战，从被骂不靠谱到成为部门MVP，这是我的踩坑全记录_v1.0.html", "1.0"], ["大模型RAG实战 v1.1", "大模型RAG实战，从被骂不靠谱到成为部门MVP，这是我的踩坑全记录_v1.1.html", "1.1"], ["大模型RAG实战 v1.1 (1)", "大模型RAG实战，从被骂不靠谱到成为部门MVP，这是我的踩坑全记录_v1.1 (1).html", "1.1 (1)"], ["大模型RAG实战 v1.1 (2)", "大模型RAG实战，从被骂不靠谱到成为部门MVP，这是我的踩坑全记录_v1.1 (2).html", "1.1 (2)"]], "基准测试 / Harness": [["Harness工程初探", "Harness工程初探_v6.21.html", "6.21"], ["一文全面探究Harness Engineering", "一文全面探究Harness Engineering_v6.21.html", "6.21"], ["通过示例理解琳瑯满目的基准测试", "通过示例理解琳瑯满目的基准测试_v6.21.html", "6.21"]]};
+const categories = {"Agent / 智能体": [["AI 智能体记忆系统现状深度调研", "AI 智能体记忆系统现状深度调研_v6.21.html", "6.21"], ["Hermes Agent 研究", "Hermes Agent 研究_v6.21.html", "6.21"], ["Hermes Agent爆火，聊聊与OpenClaw 到底区别在哪", "Hermes Agent爆火，聊聊与OpenClaw 到底区别在哪_v1.0.html", "1.0"], ["OpenClaw 深度解构", "OpenClaw 深度解构_v6.21.html", "6.21"], ["OpenClaw深度分析", "OpenClaw深度分析_v6.21.html", "6.21"], ["OpenClaw生态Skill调研", "OpenClaw生态Skill调研_v1.3.html", "1.3"], ["lucebox-hub-readme-翻译", "lucebox-hub-readme-翻译.html", ""], ["lucebox-hub-完整翻译", "lucebox-hub-完整翻译.html", ""], ["如何编写高质量的agent skill？", "如何编写高质量的agent skill？_v6.21.html", "6.21"]], "vLLM / 推理加速": [["Claude Code + 本地 LLM 的 KV Cache 复用失效问题排查全记录", "Claude Code + 本地 LLM 的 KV Cache 复用失效问题排查全记录_v1.4.html", "1.4"], ["Hermes 7 步封神操作：Token 省 80_+ 长期记忆优化，效率直接炸裂", "Hermes 7 步封神操作：Token 省 80_+ 长期记忆优化，效率直接炸裂_v1.3.html", "1.3"], ["llamacpp-checkpoint-fix-speeds-local-coding-agents-v019", "llamacpp-checkpoint-fix-speeds-local-coding-agents-v019.html", ""], ["running-qwen36-27b-dual-rtx-3090-vllm-v019", "running-qwen36-27b-dual-rtx-3090-vllm-v019.html", ""], ["从 305 GB 到 7.4 GB：大模型 KVCache 架构演进全景", "从 305 GB 到 7.4 GB：大模型 KVCache 架构演进全景_v1.0.html", "1.0"], ["从30到60 Tokens每秒-如何在双RTX 3090上运行vLLM", "从30到60 Tokens每秒-如何在双RTX 3090上运行vLLM_v2.html", "2"], ["使用 llama.cpp + MTP 分支实现 1.5 倍 Token 输出加速实战指南", "使用 llama.cpp + MTP 分支实现 1.5 倍 Token 输出加速实战指南_v1.2.html", "1.2"]], "基准测试 / Harness": [["Harness工程初探", "Harness工程初探_v6.21.html", "6.21"], ["一文全面探究Harness Engineering", "一文全面探究Harness Engineering_v6.21.html", "6.21"], ["通过示例理解琳瑯满目的基准测试", "通过示例理解琳瑯满目的基准测试_v6.21.html", "6.21"]], "RAG": [["大模型RAG实战，从被骂不靠谱到成为部门MVP，这是我的踩坑全记录", "大模型RAG实战，从被骂不靠谱到成为部门MVP，这是我的踩坑全记录_v1.1.html", "1.1"]], "微调 / Fine-tuning": [["大模型垂直领域微调系列（一）：认识微调", "大模型垂直领域微调系列（一）：认识微调_v1.7.html", "1.7"], ["大模型垂直领域微调系列（三）：完整实战与最佳实践", "大模型垂直领域微调系列（三）：完整实战与最佳实践_v1.7.html", "1.7"], ["大模型垂直领域微调系列（二）：ms-swift 框架全景", "大模型垂直领域微调系列（二）：ms-swift 框架全景_v1.7.html", "1.7"]]};
 
 let allArticles = [];
 let currentArticle = null;
@@ -190,16 +167,11 @@ async function openArticle(file, title) {
     const text = await resp.text();
     const doc = new DOMParser().parseFromString(text, 'text/html');
 
-    // Extract article styles from <head> <style> tags
     const articleStyles = [];
     doc.querySelectorAll('head style').forEach(s => articleStyles.push(s.textContent));
 
-    // Get body content
     const body = doc.body;
-
-    // Remove only: <script> tags and our added nav links
     body.querySelectorAll('script').forEach(el => el.remove());
-    // Remove the nav bar we added (the "返回列表" link)
     body.querySelectorAll('nav').forEach(el => {
       if (el.querySelector('a[href="index.html"]')) el.remove();
     });
@@ -207,13 +179,10 @@ async function openArticle(file, title) {
     const readerInner = document.getElementById('readerInner');
     readerInner.innerHTML = body.innerHTML;
 
-    // Inject article styles into reader
-    // Remove old injected styles
     document.querySelectorAll('#injectedArticleStyle').forEach(el => el.remove());
     if (articleStyles.length > 0) {
       const styleEl = document.createElement('style');
       styleEl.id = 'injectedArticleStyle';
-      // Process article styles: remove body/html/global resets that conflict
       let processed = articleStyles.join('\n')
         .replace(/body\s*\{[^}]*\}/g, '')
         .replace(/html\s*\{[^}]*\}/g, '')
@@ -243,7 +212,6 @@ function goBack() {
   document.getElementById('loading').style.display = 'none';
   document.getElementById('welcome').style.display = 'flex';
   document.getElementById('welcome').innerHTML = '<div class="icon">&#128214;</div><span>从左侧选择一篇文章</span>';
-  // Remove injected styles
   document.querySelectorAll('#injectedArticleStyle').forEach(el => el.remove());
 }
 

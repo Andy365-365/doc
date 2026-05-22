@@ -1,0 +1,285 @@
+#!/usr/bin/env python3
+"""Generate index.html from HTML files in the same directory.
+Usage: python3 gen-index.py
+"""
+import os, json, re
+
+doc_dir = os.path.dirname(os.path.abspath(__file__))
+
+# Scan HTML files
+html_files = sorted([f for f in os.listdir(doc_dir) if f.endswith('.html') and f != 'index.html'])
+
+# Categories config: keyword -> category name
+CAT_RULES = [
+    ('vLLM / 推理加速', ['vllm', 'kv cache', 'kvcache', 'llamacpp', 'mtp', '3090', 'qwen36', 'running-qwen', 'token']),
+    ('Agent / 智能体', ['agent', 'hermes', 'openclaw', '智能体', 'skill', 'lucebox']),
+    ('微调 / Fine-tuning', ['微调', 'fine-tun', 'swift']),
+    ('RAG', ['rag']),
+    ('基准测试 / Harness', ['harness', '基准', 'benchmark', '测试']),
+]
+
+categories = {}
+for f in html_files:
+    parts = f.replace('.html', '')
+    title = parts.rsplit('_v', 1)[0] if '_v' in parts else parts
+    ver = parts.rsplit('_v', 1)[1] if '_v' in parts else ''
+    low = title.lower()
+    placed = False
+    for cat_name, keywords in CAT_RULES:
+        if any(k in low for k in keywords):
+            categories.setdefault(cat_name, []).append((title, f, ver))
+            placed = True
+            break
+    if not placed:
+        categories.setdefault('其他', []).append((title, f, ver))
+
+# Build JS data
+js_categories = json.dumps(categories, ensure_ascii=False)
+total = sum(len(v) for v in categories.values())
+
+html = f'''<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>技术文档翻译合集</title>
+<style>
+*{{margin:0;padding:0;box-sizing:border-box}}
+body{{background:#0d1117;color:#c9d1d9;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;height:100vh;display:flex;flex-direction:column;overflow:hidden}}
+.header{{display:flex;align-items:center;gap:12px;padding:8px 16px;background:#161b22;border-bottom:1px solid #30363d;flex-shrink:0}}
+.header h1{{font-size:1rem;color:#58a6ff;white-space:nowrap}}
+.header .article-title{{font-size:0.85rem;color:#8b949e;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}}
+.back-btn{{display:none;padding:4px 12px;background:#21262d;color:#58a6ff;border:1px solid #30363d;border-radius:6px;cursor:pointer;font-size:0.85rem;white-space:nowrap}}
+.back-btn:hover{{background:#30363d}}
+.container{{display:flex;flex:1;overflow:hidden}}
+.sidebar{{width:340px;min-width:340px;border-right:1px solid #21262d;display:flex;flex-direction:column;background:#0d1117;overflow:hidden}}
+.sidebar-header{{padding:12px 16px;border-bottom:1px solid #21262d;display:flex;justify-content:space-between;align-items:center}}
+.sidebar-header .count{{color:#8b949e;font-size:0.8rem}}
+.search-box{{padding:8px 12px;border-bottom:1px solid #21262d}}
+.search-box input{{width:100%;padding:6px 10px;background:#0d1117;border:1px solid #30363d;border-radius:6px;color:#c9d1d9;font-size:0.85rem;outline:none}}
+.search-box input:focus{{border-color:#58a6ff}}
+.article-list{{flex:1;overflow-y:auto}}
+.cat-group{{border-bottom:1px solid #21262d}}
+.cat-header{{display:flex;align-items:center;padding:10px 16px;cursor:pointer;font-size:0.85rem;font-weight:600;color:#8b949e;user-select:none;transition:color 0.15s}}
+.cat-header:hover{{color:#c9d1d9}}
+.cat-header .arrow{{margin-right:6px;transition:transform 0.2s;font-size:0.7rem}}
+.cat-header.collapsed .arrow{{transform:rotate(-90deg)}}
+.cat-header .cat-count{{margin-left:auto;font-size:0.75rem;color:#484f58;font-weight:400}}
+.cat-items{{overflow:hidden;transition:max-height 0.3s ease}}
+.cat-items.collapsed{{max-height:0!important}}
+.article-item{{display:flex;align-items:baseline;padding:7px 16px 7px 32px;cursor:pointer;transition:background 0.15s;font-size:0.82rem;line-height:1.3}}
+.article-item:hover{{background:#161b22}}
+.article-item.active{{background:#161b22;color:#58a6ff;border-left:3px solid #58a6ff;padding-left:29px}}
+.article-item .ver{{color:#484f58;font-size:0.7rem;margin-left:auto;flex-shrink:0}}
+.main{{flex:1;overflow:hidden;display:flex;flex-direction:column}}
+.welcome{{display:flex;align-items:center;justify-content:center;flex:1;color:#484f58;font-size:1.1rem;flex-direction:column;gap:12px}}
+.welcome .icon{{font-size:3rem;opacity:0.5}}
+.loading{{display:none;align-items:center;justify-content:center;flex:1;color:#8b949e;font-size:0.9rem;flex-direction:column;gap:12px}}
+.spinner{{width:32px;height:32px;border:3px solid #21262d;border-top-color:#58a6ff;border-radius:50%;animation:spin 0.8s linear infinite}}
+@keyframes spin{{to{{transform:rotate(360deg)}}}}
+.reader{{display:none;flex:1;overflow-y:auto;padding:0;position:relative}}
+.reader-inner{{max-width:960px;margin:0 auto;padding:24px 32px 48px}}
+.reader h1{{color:#e6edf3;font-size:1.8rem;margin:24px 0 16px;padding-bottom:12px;border-bottom:1px solid #21262d;line-height:1.3}}
+.reader h2{{color:#e6edf3;font-size:1.4rem;margin:28px 0 12px;padding-bottom:8px;border-bottom:1px solid #21262d;line-height:1.3}}
+.reader h3{{color:#e6edf3;font-size:1.15rem;margin:24px 0 10px}}
+.reader h4{{color:#e6edf3;font-size:1rem;margin:20px 0 8px}}
+.reader p{{margin:12px 0;line-height:1.8;font-size:0.95rem;color:#c9d1d9}}
+.reader a{{color:#58a6ff;text-decoration:none}}
+.reader a:hover{{text-decoration:underline}}
+.reader strong{{color:#e6edf3}}
+.reader em{{color:#8b949e;font-style:italic}}
+.reader ul,.reader ol{{margin:12px 0;padding-left:24px}}
+.reader li{{margin:6px 0;line-height:1.7;font-size:0.95rem}}
+.reader blockquote{{border-left:4px solid #388bfd;padding:12px 16px;margin:16px 0;background:#161b22;border-radius:0 6px 6px 0;color:#8b949e}}
+.reader table{{border-collapse:collapse;margin:16px 0;width:100%;font-size:0.9rem}}
+.reader th{{background:#161b22;color:#e6edf3;font-weight:600;text-align:left;padding:10px 14px;border:1px solid #30363d}}
+.reader td{{padding:10px 14px;border:1px solid #30363d;color:#c9d1d9}}
+.reader tr:nth-child(even){{background:#0d1117}}
+.reader tr:nth-child(odd){{background:#161b22}}
+.reader code{{background:#1c2128;padding:2px 6px;border-radius:4px;font-size:0.85em;color:#f0883e;font-family:"Fira Code","Cascadia Code","JetBrains Mono",Consolas,monospace}}
+.reader pre{{background:#161b22;border:1px solid #30363d;border-radius:8px;padding:16px;margin:16px 0;overflow-x:auto;line-height:1.5}}
+.reader pre code{{background:none;padding:0;color:#c9d1d9;font-size:0.85rem}}
+.reader img{{max-width:100%;height:auto;border-radius:8px;margin:16px 0;box-shadow:0 2px 12px rgba(0,0,0,0.4)}}
+.reader hr{{border:none;border-top:1px solid #21262d;margin:24px 0}}
+.reader > nav{{display:none!important}}
+.article-list::-webkit-scrollbar,.reader::-webkit-scrollbar{{width:6px}}
+.article-list::-webkit-scrollbar-track,.reader::-webkit-scrollbar-track{{background:transparent}}
+.article-list::-webkit-scrollbar-thumb,.reader::-webkit-scrollbar-thumb{{background:#30363d;border-radius:3px}}
+@media(max-width:768px){{.sidebar{{width:280px;min-width:280px}}.reader-inner{{padding:16px 20px}}}}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>技术文档翻译合集</h1>
+  <span class="article-title" id="headerTitle"></span>
+  <button class="back-btn" id="backBtn" onclick="goBack()">&#8592; 返回列表</button>
+</div>
+
+<div class="container">
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <span class="count" id="totalCount"></span>
+    </div>
+    <div class="search-box">
+      <input type="text" id="search" placeholder="搜索文章标题..." oninput="filterArticles()">
+    </div>
+    <div class="article-list" id="articleList"></div>
+  </div>
+  <div class="main" id="mainContent">
+    <div class="welcome" id="welcome"><div class="icon">&#128214;</div><span>从左侧选择一篇文章</span></div>
+    <div class="loading" id="loading"><div class="spinner"></div><span>加载中...</span></div>
+    <div class="reader" id="reader"><div class="reader-inner" id="readerInner"></div></div>
+  </div>
+</div>
+
+<script>
+const categories = {js_categories};
+
+let allArticles = [];
+let currentArticle = null;
+
+for (const [cat, articles] of Object.entries(categories)) {{
+  articles.forEach(a => {{
+    allArticles.push({{title: a[0], file: a[1], ver: a[2], cat: cat}});
+  }});
+}}
+
+document.getElementById('totalCount').textContent = '共 ' + allArticles.length + ' 篇文章';
+
+function init() {{
+  const list = document.getElementById('articleList');
+  for (const [cat, articles] of Object.entries(categories)) {{
+    const group = document.createElement('div');
+    group.className = 'cat-group';
+    group.dataset.cat = cat;
+
+    const header = document.createElement('div');
+    header.className = 'cat-header';
+    header.innerHTML = '<span class="arrow">&#9660;</span> ' + cat + ' <span class="cat-count">' + articles.length + '</span>';
+    header.onclick = () => {{
+      header.classList.toggle('collapsed');
+      items.classList.toggle('collapsed');
+    }};
+
+    const items = document.createElement('div');
+    items.className = 'cat-items';
+    items.style.maxHeight = articles.length * 40 + 'px';
+
+    articles.forEach((a, i) => {{
+      const div = document.createElement('div');
+      div.className = 'article-item';
+      div.dataset.file = a[1];
+      div.innerHTML = '<span>' + a[0] + '</span>' + (a[2] ? '<span class="ver">v' + a[2] + '</span>' : '');
+      div.onclick = () => openArticle(a[1], a[0]);
+      items.appendChild(div);
+    }});
+
+    group.appendChild(header);
+    group.appendChild(items);
+    list.appendChild(group);
+  }}
+
+  const hash = window.location.hash.slice(1);
+  if (hash) {{
+    const decoded = decodeURIComponent(hash);
+    openArticle(decoded, allArticles.find(a => a.file === decoded)?.title || '');
+  }}
+}}
+
+async function openArticle(file, title) {{
+  currentArticle = file;
+  window.location.hash = encodeURIComponent(file);
+
+  document.querySelectorAll('.article-item').forEach(el => {{
+    el.classList.toggle('active', el.dataset.file === file);
+  }});
+
+  document.getElementById('headerTitle').textContent = title;
+  document.getElementById('backBtn').style.display = 'block';
+  document.getElementById('welcome').style.display = 'none';
+  document.getElementById('reader').style.display = 'none';
+  document.getElementById('loading').style.display = 'flex';
+
+  try {{
+    const resp = await fetch(file);
+    const text = await resp.text();
+    const doc = new DOMParser().parseFromString(text, 'text/html');
+
+    const articleStyles = [];
+    doc.querySelectorAll('head style').forEach(s => articleStyles.push(s.textContent));
+
+    const body = doc.body;
+    body.querySelectorAll('script').forEach(el => el.remove());
+    body.querySelectorAll('nav').forEach(el => {{
+      if (el.querySelector('a[href="index.html"]')) el.remove();
+    }});
+
+    const readerInner = document.getElementById('readerInner');
+    readerInner.innerHTML = body.innerHTML;
+
+    document.querySelectorAll('#injectedArticleStyle').forEach(el => el.remove());
+    if (articleStyles.length > 0) {{
+      const styleEl = document.createElement('style');
+      styleEl.id = 'injectedArticleStyle';
+      let processed = articleStyles.join('\\n')
+        .replace(/body\\s*\\{{[^}}]*\\}}/g, '')
+        .replace(/html\\s*\\{{[^}}]*\\}}/g, '')
+        .replace(/@import[^;]+;/g, '');
+      styleEl.textContent = processed;
+      document.head.appendChild(styleEl);
+    }}
+
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('reader').style.display = 'block';
+    document.getElementById('reader').scrollTop = 0;
+
+  }} catch (e) {{
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('welcome').style.display = 'flex';
+    document.getElementById('welcome').innerHTML = '<div class="icon">&#9888;</div><span>加载失败: ' + e.message + '</span>';
+  }}
+}}
+
+function goBack() {{
+  currentArticle = null;
+  window.location.hash = '';
+  document.querySelectorAll('.article-item').forEach(el => el.classList.remove('active'));
+  document.getElementById('headerTitle').textContent = '';
+  document.getElementById('backBtn').style.display = 'none';
+  document.getElementById('reader').style.display = 'none';
+  document.getElementById('loading').style.display = 'none';
+  document.getElementById('welcome').style.display = 'flex';
+  document.getElementById('welcome').innerHTML = '<div class="icon">&#128214;</div><span>从左侧选择一篇文章</span>';
+  document.querySelectorAll('#injectedArticleStyle').forEach(el => el.remove());
+}}
+
+function filterArticles() {{
+  const q = document.getElementById('search').value.toLowerCase();
+  document.querySelectorAll('.article-item').forEach(el => {{
+    const title = el.querySelector('span').textContent.toLowerCase();
+    el.style.display = title.includes(q) ? '' : 'none';
+  }});
+  document.querySelectorAll('.cat-group').forEach(group => {{
+    const visible = group.querySelectorAll('.article-item:not([style*="display: none"])');
+    group.style.display = visible.length ? '' : 'none';
+  }});
+}}
+
+window.addEventListener('hashchange', () => {{
+  const hash = window.location.hash.slice(1);
+  if (!hash) {{ goBack(); return; }}
+  const decoded = decodeURIComponent(hash);
+  const art = allArticles.find(a => a.file === decoded);
+  if (art) openArticle(decoded, art.title);
+}});
+
+init();
+</script>
+</body>
+</html>'''
+
+with open(os.path.join(doc_dir, 'index.html'), 'w', encoding='utf-8') as f:
+    f.write(html)
+
+print(f"Generated index.html ({len(html)} bytes) with {total} articles across {len(categories)} categories")
