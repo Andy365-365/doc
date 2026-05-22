@@ -218,7 +218,7 @@ async function openArticle(file, title) {{
     const readerInner = document.getElementById('readerInner');
     readerInner.innerHTML = body.innerHTML;
 
-    document.querySelectorAll('#injectedArticleStyle').forEach(el => el.remove());
+    document.querySelectorAll('#injectedArticleStyle,#darkOverrideStyle').forEach(el => el.remove());
     if (articleStyles.length > 0) {{
       const styleEl = document.createElement('style');
       styleEl.id = 'injectedArticleStyle';
@@ -229,6 +229,36 @@ async function openArticle(file, title) {{
       styleEl.textContent = processed;
       document.head.appendChild(styleEl);
     }}
+    // Dark theme overrides for article TOC and white-themed elements
+    const darkEl = document.createElement('style');
+    darkEl.id = 'darkOverrideStyle';
+    darkEl.textContent = `
+      /* TOC panel dark override */
+      #toc-wrapper, #toc {{ background: #161b22 !important; border-color: #30363d !important; }}
+      #toc a {{ color: #58a6ff !important; }}
+      #toc a:hover {{ background: #21262d !important; color: #58a6ff !important; }}
+      #toc-toggle {{ background: #30363d !important; color: #c9d1d9 !important; }}
+      #toc-toggle:hover {{ background: #484f58 !important; }}
+      /* White background elements */
+      .reader-inner pre {{ background: #161b22 !important; border-color: #30363d !important; color: #c9d1d9 !important; }}
+      .reader-inner code {{ background: #1c2128 !important; color: #f0883e !important; }}
+      .reader-inner pre code {{ background: none !important; color: #c9d1d9 !important; }}
+      .reader-inner blockquote {{ background: #161b22 !important; border-color: #388bfd !important; color: #8b949e !important; }}
+      .reader-inner table {{ border-color: #30363d !important; }}
+      .reader-inner th {{ background: #161b22 !important; color: #e6edf3 !important; border-color: #30363d !important; }}
+      .reader-inner td {{ border-color: #30363d !important; color: #c9d1d9 !important; }}
+      .reader-inner tr:nth-child(even) {{ background: #0d1117 !important; }}
+      .reader-inner tr:nth-child(odd) {{ background: #161b22 !important; }}
+      .reader-inner h1, .reader-inner h2, .reader-inner h3, .reader-inner h4 {{ color: #e6edf3 !important; border-color: #21262d !important; }}
+      .reader-inner p, .reader-inner li {{ color: #c9d1d9 !important; }}
+      .reader-inner a {{ color: #58a6ff !important; }}
+      .reader-inner figcaption, .reader-inner p[style*="text-align: center"] {{ color: #8b949e !important; }}
+      .reader-inner #sources {{ border-color: #21262d !important; color: #8b949e !important; }}
+      .reader-inner #sources a {{ color: #58a6ff !important; }}
+      .reader-inner .article-publish-time {{ color: #8b949e !important; }}
+      .reader-inner {{ color: #c9d1d9 !important; }}
+    `;
+    document.head.appendChild(darkEl);
 
     document.getElementById('loading').style.display = 'none';
     document.getElementById('reader').style.display = 'block';
