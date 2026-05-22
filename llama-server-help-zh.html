@@ -450,22 +450,22 @@ built with GNU 13.3.0 for Linux x86_64</div>
 <thead><tr><th>参数</th><th>描述</th><th>环境变量</th></tr></thead>
 <tbody>
 <tr>
-<td class="param-name">-t, --threads <var>N</var></td>
+<td class="param-name">-t<br>--threads <var>N</var></td>
 <td class="param-desc">生成期间使用的 CPU 线程数<br><span class="param-default">默认：-1（自动）</span></td>
 <td><span class="param-env">LLAMA_ARG_THREADS</span></td>
 </tr>
 <tr>
-<td class="param-name">-tb, --threads-batch <var>N</var></td>
+<td class="param-name">-tb<br>--threads-batch <var>N</var></td>
 <td class="param-desc">批处理和提示词处理期间使用的线程数<br><span class="param-default">默认：与 --threads 相同</span></td>
 <td>—</td>
 </tr>
 <tr>
-<td class="param-name">-C, --cpu-mask <var>M</var></td>
+<td class="param-name">-C<br>--cpu-mask <var>M</var></td>
 <td class="param-desc">CPU 亲和性掩码：任意长度的十六进制值。与 --cpu-range 互补<br><span class="param-default">默认：""</span></td>
 <td>—</td>
 </tr>
 <tr>
-<td class="param-name">-Cr, --cpu-range <var>lo-hi</var></td>
+<td class="param-name">-Cr<br>--cpu-range <var>lo-hi</var></td>
 <td class="param-desc">用于亲和性的 CPU 范围。与 --cpu-mask 互补<br><span class="param-default">默认：""</span></td>
 <td>—</td>
 </tr>
@@ -485,12 +485,12 @@ built with GNU 13.3.0 for Linux x86_64</div>
 <td>—</td>
 </tr>
 <tr>
-<td class="param-name">-Cb, --cpu-mask-batch <var>M</var></td>
+<td class="param-name">-Cb<br>--cpu-mask-batch <var>M</var></td>
 <td class="param-desc">批处理的 CPU 亲和性掩码：任意长度的十六进制值。与 --cpu-range-batch 互补<br><span class="param-default">默认：与 --cpu-mask 相同</span></td>
 <td>—</td>
 </tr>
 <tr>
-<td class="param-name">-Crb, --cpu-range-batch <var>lo-hi</var></td>
+<td class="param-name">-Crb<br>--cpu-range-batch <var>lo-hi</var></td>
 <td class="param-desc">用于批处理亲和性的 CPU 范围。与 --cpu-mask-batch 互补<br><span class="param-default">默认：与 --cpu-range 相同</span></td>
 <td>—</td>
 </tr>
@@ -520,22 +520,22 @@ built with GNU 13.3.0 for Linux x86_64</div>
 <thead><tr><th>参数</th><th>描述</th><th>环境变量</th></tr></thead>
 <tbody>
 <tr>
-<td class="param-name">-c, --ctx-size <var>N</var></td>
+<td class="param-name">-c<br>--ctx-size <var>N</var></td>
 <td class="param-desc">提示词上下文的大小<br><span class="param-default">默认：0（从模型加载）</span></td>
 <td><span class="param-env">LLAMA_ARG_CTX_SIZE</span></td>
 </tr>
 <tr>
-<td class="param-name">-n, --predict, --n-predict <var>N</var></td>
+<td class="param-name">-n<br>--predict<br>--n-predict <var>N</var></td>
 <td class="param-desc">要预测的 token 数量<br><span class="param-default">默认：-1（无限）</span></td>
 <td><span class="param-env">LLAMA_ARG_N_PREDICT</span></td>
 </tr>
 <tr>
-<td class="param-name">-b, --batch-size <var>N</var></td>
+<td class="param-name">-b<br>--batch-size <var>N</var></td>
 <td class="param-desc">逻辑最大批处理大小<br><span class="param-default">默认：2048</span></td>
 <td><span class="param-env">LLAMA_ARG_BATCH</span></td>
 </tr>
 <tr>
-<td class="param-name">-ub, --ubatch-size <var>N</var></td>
+<td class="param-name">-ub<br>--ubatch-size <var>N</var></td>
 <td class="param-desc">物理最大批处理大小<br><span class="param-default">默认：512</span></td>
 <td><span class="param-env">LLAMA_ARG_UBATCH</span></td>
 </tr>
@@ -550,7 +550,7 @@ built with GNU 13.3.0 for Linux x86_64</div>
 <td><span class="param-env">LLAMA_ARG_SWA_FULL</span></td>
 </tr>
 <tr>
-<td class="param-name">-fa, --flash-attn <var>[on|off|auto]</var></td>
+<td class="param-name">-fa<br>--flash-attn <var>[on|off|auto]</var></td>
 <td class="param-desc">设置 Flash Attention（闪速注意力）的使用方式<br><span class="param-default">默认：auto</span></td>
 <td><span class="param-env">LLAMA_ARG_FLASH_ATTN</span></td>
 </tr>
@@ -645,17 +645,17 @@ built with GNU 13.3.0 for Linux x86_64</div>
 <td><span class="param-env">LLAMA_ARG_NO_HOST</span></td>
 </tr>
 <tr>
-<td class="param-name">-ctk, --cache-type-k <var>TYPE</var></td>
+<td class="param-name">-ctk<br>--cache-type-k <var>TYPE</var></td>
 <td class="param-desc">K 的 KV 缓存数据类型<br>允许值：f32, f16, bf16, q8_0, q4_0, q4_1, iq4_nl, q5_0, q5_1<br><span class="param-default">默认：f16</span></td>
 <td><span class="param-env">LLAMA_ARG_CACHE_TYPE_K</span></td>
 </tr>
 <tr>
-<td class="param-name">-ctv, --cache-type-v <var>TYPE</var></td>
+<td class="param-name">-ctv<br>--cache-type-v <var>TYPE</var></td>
 <td class="param-desc">V 的 KV 缓存数据类型<br>允许值：f32, f16, bf16, q8_0, q4_0, q4_1, iq4_nl, q5_0, q5_1<br><span class="param-default">默认：f16</span></td>
 <td><span class="param-env">LLAMA_ARG_CACHE_TYPE_V</span></td>
 </tr>
 <tr>
-<td class="param-name">-dt, --defrag-thold <var>N</var></td>
+<td class="param-name">-dt<br>--defrag-thold <var>N</var></td>
 <td class="param-desc"><span class="param-deprecated">[已废弃]</span> KV 缓存去碎片化阈值</td>
 <td><span class="param-env">LLAMA_ARG_DEFRAG_THOLD</span></td>
 </tr>
@@ -714,7 +714,7 @@ built with GNU 13.3.0 for Linux x86_64</div>
 <thead><tr><th>参数</th><th>描述</th><th>环境变量</th></tr></thead>
 <tbody>
 <tr>
-<td class="param-name">--dev, --device <var>&lt;dev1,dev2,..&gt;</var></td>
+<td class="param-name">--dev<br>--device <var>&lt;dev1,dev2,..&gt;</var></td>
 <td class="param-desc">用于卸载的设备列表（逗号分隔），none = 不卸载<br>使用 --list-devices 查看可用设备列表</td>
 <td><span class="param-env">LLAMA_ARG_DEVICE</span></td>
 </tr>
@@ -724,27 +724,27 @@ built with GNU 13.3.0 for Linux x86_64</div>
 <td>—</td>
 </tr>
 <tr>
-<td class="param-name">-ot, --override-tensor <var>&lt;tensor pattern&gt;=&lt;buffer type&gt;,...</var></td>
+<td class="param-name">-ot<br>--override-tensor <var>&lt;tensor pattern&gt;=&lt;buffer type&gt;,...</var></td>
 <td class="param-desc">覆盖张量缓冲区类型</td>
 <td><span class="param-env">LLAMA_ARG_OVERRIDE_TENSOR</span></td>
 </tr>
 <tr>
-<td class="param-name">-cmoe, --cpu-moe</td>
+<td class="param-name">-cmoe<br>--cpu-moe</td>
 <td class="param-desc">将所有混合专家（Mixture of Experts, MoE）权重保留在 CPU 上</td>
 <td><span class="param-env">LLAMA_ARG_CPU_MOE</span></td>
 </tr>
 <tr>
-<td class="param-name">-ncmoe, --n-cpu-moe <var>N</var></td>
+<td class="param-name">-ncmoe<br>--n-cpu-moe <var>N</var></td>
 <td class="param-desc">将前 N 层的 MoE 权重保留在 CPU 上</td>
 <td><span class="param-env">LLAMA_ARG_N_CPU_MOE</span></td>
 </tr>
 <tr>
-<td class="param-name">-ngl, --gpu-layers, --n-gpu-layers <var>N</var></td>
+<td class="param-name">-ngl<br>--gpu-layers<br>--n-gpu-layers <var>N</var></td>
 <td class="param-desc">存储在显存（VRAM）中的最大层数，可以是精确数字、<code>auto</code> 或 <code>all</code><br><span class="param-default">默认：auto</span></td>
 <td><span class="param-env">LLAMA_ARG_N_GPU_LAYERS</span></td>
 </tr>
 <tr>
-<td class="param-name">-sm, --split-mode <var>{none,layer,row,tensor}</var></td>
+<td class="param-name">-sm<br>--split-mode <var>{none,layer,row,tensor}</var></td>
 <td class="param-desc">跨多 GPU 拆分模型的方式：<br>
   <code>none</code>：仅使用一个 GPU<br>
   <code>layer</code>（默认）：跨 GPU 拆分层和 KV（流水线方式）<br>
@@ -753,27 +753,27 @@ built with GNU 13.3.0 for Linux x86_64</div>
 <td><span class="param-env">LLAMA_ARG_SPLIT_MODE</span></td>
 </tr>
 <tr>
-<td class="param-name">-ts, --tensor-split <var>N0,N1,N2,...</var></td>
+<td class="param-name">-ts<br>--tensor-split <var>N0,N1,N2,...</var></td>
 <td class="param-desc">卸载到每个 GPU 的模型比例，逗号分隔的比例列表，例如 <code>3,1</code></td>
 <td><span class="param-env">LLAMA_ARG_TENSOR_SPLIT</span></td>
 </tr>
 <tr>
-<td class="param-name">-mg, --main-gpu <var>INDEX</var></td>
+<td class="param-name">-mg<br>--main-gpu <var>INDEX</var></td>
 <td class="param-desc">用于模型的 GPU（split-mode = none 时），或用于中间结果和 KV 的 GPU（split-mode = row 时）<br><span class="param-default">默认：0</span></td>
 <td><span class="param-env">LLAMA_ARG_MAIN_GPU</span></td>
 </tr>
 <tr>
-<td class="param-name">-fit, --fit <var>[on|off]</var></td>
+<td class="param-name">-fit<br>--fit <var>[on|off]</var></td>
 <td class="param-desc">是否调整未设置的参数以适应设备内存<br><span class="param-default">默认：on</span></td>
 <td><span class="param-env">LLAMA_ARG_FIT</span></td>
 </tr>
 <tr>
-<td class="param-name">-fitt, --fit-target <var>MiB0,MiB1,MiB2,...</var></td>
+<td class="param-name">-fitt<br>--fit-target <var>MiB0,MiB1,MiB2,...</var></td>
 <td class="param-desc">--fit 的每设备目标余量，逗号分隔的值列表，单个值广播到所有设备<br><span class="param-default">默认：1024 MiB</span></td>
 <td><span class="param-env">LLAMA_ARG_FIT_TARGET</span></td>
 </tr>
 <tr>
-<td class="param-name">-fitc, --fit-ctx <var>N</var></td>
+<td class="param-name">-fitc<br>--fit-ctx <var>N</var></td>
 <td class="param-desc">--fit 选项可设置的最小上下文大小<br><span class="param-default">默认：4096</span></td>
 <td><span class="param-env">LLAMA_ARG_FIT_CTX</span></td>
 </tr>
@@ -828,42 +828,42 @@ built with GNU 13.3.0 for Linux x86_64</div>
 <td>—</td>
 </tr>
 <tr>
-<td class="param-name">-m, --model <var>FNAME</var></td>
+<td class="param-name">-m<br>--model <var>FNAME</var></td>
 <td class="param-desc">要加载的模型路径</td>
 <td><span class="param-env">LLAMA_ARG_MODEL</span></td>
 </tr>
 <tr>
-<td class="param-name">-mu, --model-url <var>MODEL_URL</var></td>
+<td class="param-name">-mu<br>--model-url <var>MODEL_URL</var></td>
 <td class="param-desc">模型下载 URL<br><span class="param-default">默认：未使用</span></td>
 <td><span class="param-env">LLAMA_ARG_MODEL_URL</span></td>
 </tr>
 <tr>
-<td class="param-name">-dr, --docker-repo <var>[&lt;repo&gt;/]&lt;model&gt;[:quant]</var></td>
+<td class="param-name">-dr<br>--docker-repo <var>[&lt;repo&gt;/]&lt;model&gt;[:quant]</var></td>
 <td class="param-desc">Docker Hub 模型仓库。repo 可选，默认为 ai/。quant 可选，默认为 :latest。<br>示例：<code>gemma3</code><br><span class="param-default">默认：未使用</span></td>
 <td><span class="param-env">LLAMA_ARG_DOCKER_REPO</span></td>
 </tr>
 <tr>
-<td class="param-name">-hf, -hfr, --hf-repo <var>&lt;user&gt;/&lt;model&gt;[:quant]</var></td>
+<td class="param-name">-hf<br>-hfr<br>--hf-repo <var>&lt;user&gt;/&lt;model&gt;[:quant]</var></td>
 <td class="param-desc">Hugging Face 模型仓库；quant 可选，不区分大小写，默认为 Q4_K_M。如果可用，mmproj 也会自动下载。要禁用，添加 --no-mmproj。<br>示例：<code>ggml-org/GLM-4.7-Flash-GGUF:Q4_K_M</code><br><span class="param-default">默认：未使用</span></td>
 <td><span class="param-env">LLAMA_ARG_HF_REPO</span></td>
 </tr>
 <tr>
-<td class="param-name">-hff, --hf-file <var>FILE</var></td>
+<td class="param-name">-hff<br>--hf-file <var>FILE</var></td>
 <td class="param-desc">Hugging Face 模型文件。如果指定，将覆盖 --hf-repo 中的 quant<br><span class="param-default">默认：未使用</span></td>
 <td><span class="param-env">LLAMA_ARG_HF_FILE</span></td>
 </tr>
 <tr>
-<td class="param-name">-hfv, -hfrv, --hf-repo-v <var>&lt;user&gt;/&lt;model&gt;[:quant]</var></td>
+<td class="param-name">-hfv<br>-hfrv<br>--hf-repo-v <var>&lt;user&gt;/&lt;model&gt;[:quant]</var></td>
 <td class="param-desc">声码器（vocoder）模型的 Hugging Face 模型仓库<br><span class="param-default">默认：未使用</span></td>
 <td><span class="param-env">LLAMA_ARG_HF_REPO_V</span></td>
 </tr>
 <tr>
-<td class="param-name">-hffv, --hf-file-v <var>FILE</var></td>
+<td class="param-name">-hffv<br>--hf-file-v <var>FILE</var></td>
 <td class="param-desc">声码器模型的 Hugging Face 模型文件<br><span class="param-default">默认：未使用</span></td>
 <td><span class="param-env">LLAMA_ARG_HF_FILE_V</span></td>
 </tr>
 <tr>
-<td class="param-name">-hft, --hf-token <var>TOKEN</var></td>
+<td class="param-name">-hft<br>--hf-token <var>TOKEN</var></td>
 <td class="param-desc">Hugging Face 访问令牌<br><span class="param-default">默认：从 HF_TOKEN 环境变量读取</span></td>
 <td><span class="param-env">HF_TOKEN</span></td>
 </tr>
@@ -903,7 +903,7 @@ built with GNU 13.3.0 for Linux x86_64</div>
 <td><span class="param-env">LLAMA_OFFLINE</span></td>
 </tr>
 <tr>
-<td class="param-name">-lv, --verbosity, --log-verbosity <var>N</var></td>
+<td class="param-name">-lv<br>--verbosity<br>--log-verbosity <var>N</var></td>
 <td class="param-desc">设置详细程度阈值。高于此值的消息将被忽略。<br>
   <code>0</code>：通用输出 · <code>1</code>：错误 · <code>2</code>：警告 · <code>3</code>：信息 · <code>4</code>：追踪 · <code>5</code>：调试<br>
 <span class="param-default">默认：3</span></td>
@@ -937,11 +937,11 @@ built with GNU 13.3.0 for Linux x86_64</div>
 <td class="param-desc">用于生成的采样器，按顺序排列，以 <code>;</code> 分隔<br><span class="param-default">默认：<code>penalties;dry;top_n_sigma;top_k;typ_p;top_p;min_p;xtc;temperature</code></span></td>
 </tr>
 <tr>
-<td class="param-name">-s, --seed <var>SEED</var></td>
+<td class="param-name">-s<br>--seed <var>SEED</var></td>
 <td class="param-desc">随机数生成器（RNG）种子<br><span class="param-default">默认：-1（使用随机种子）</span></td>
 </tr>
 <tr>
-<td class="param-name">--sampler-seq, --sampling-seq <var>SEQUENCE</var></td>
+<td class="param-name">--sampler-seq<br>--sampling-seq <var>SEQUENCE</var></td>
 <td class="param-desc">用于采样器的简化序列<br><span class="param-default">默认：<code>edskypmxt</code></span></td>
 </tr>
 <tr>
@@ -959,7 +959,7 @@ built with GNU 13.3.0 for Linux x86_64</div>
 <thead><tr><th>参数</th><th>描述</th><th>环境变量</th></tr></thead>
 <tbody>
 <tr>
-<td class="param-name">--temp, --temperature <var>N</var></td>
+<td class="param-name">--temp<br>--temperature <var>N</var></td>
 <td class="param-desc">温度（temperature）<br><span class="param-default">默认：0.80</span></td>
 <td>—</td>
 </tr>
@@ -979,7 +979,7 @@ built with GNU 13.3.0 for Linux x86_64</div>
 <td>—</td>
 </tr>
 <tr>
-<td class="param-name">--top-nsigma, --top-n-sigma <var>N</var></td>
+<td class="param-name">--top-nsigma<br>--top-n-sigma <var>N</var></td>
 <td class="param-desc">Top-n-sigma 采样<br><span class="param-default">默认：-1.00（-1.0 = 禁用）</span></td>
 <td>—</td>
 </tr>
@@ -994,7 +994,7 @@ built with GNU 13.3.0 for Linux x86_64</div>
 <td>—</td>
 </tr>
 <tr>
-<td class="param-name">--typical, --typical-p <var>N</var></td>
+<td class="param-name">--typical<br>--typical-p <var>N</var></td>
 <td class="param-desc">局部典型采样（Locally Typical Sampling），参数 p<br><span class="param-default">默认：1.00（1.0 = 禁用）</span></td>
 <td>—</td>
 </tr>
@@ -1098,7 +1098,7 @@ built with GNU 13.3.0 for Linux x86_64</div>
 <td>—</td>
 </tr>
 <tr>
-<td class="param-name">-l, --logit-bias <var>TOKEN_ID(+/-)BIAS</var></td>
+<td class="param-name">-l<br>--logit-bias <var>TOKEN_ID(+/-)BIAS</var></td>
 <td class="param-desc">修改 token 出现在补全结果中的概率，例如 <code>--logit-bias 15043+1</code> 增加 token <code>' Hello'</code> 的概率，或 <code>--logit-bias 15043-1</code> 降低</td>
 <td>—</td>
 </tr>
@@ -1123,17 +1123,17 @@ built with GNU 13.3.0 for Linux x86_64</div>
 <td>—</td>
 </tr>
 <tr>
-<td class="param-name">-j, --json-schema <var>SCHEMA</var></td>
+<td class="param-name">-j<br>--json-schema <var>SCHEMA</var></td>
 <td class="param-desc">用于约束生成的 JSON Schema（<a href="https://json-schema.org/" target="_blank">https://json-schema.org/</a>），例如 <code>{}</code> 表示任意 JSON 对象<br>对于包含外部 $ref 的 Schema，请使用 --grammar + example/json_schema_to_grammar.py</td>
 <td>—</td>
 </tr>
 <tr>
-<td class="param-name">-jf, --json-schema-file <var>FILE</var></td>
+<td class="param-name">-jf<br>--json-schema-file <var>FILE</var></td>
 <td class="param-desc">包含用于约束生成的 JSON Schema 的文件</td>
 <td>—</td>
 </tr>
 <tr>
-<td class="param-name">-bs, --backend-sampling</td>
+<td class="param-name">-bs<br>--backend-sampling</td>
 <td class="param-desc"><strong>[实验性]</strong> 启用后端采样<br><span class="param-default">默认：禁用</span></td>
 <td><span class="param-env">LLAMA_ARG_BACKEND_SAMPLING</span></td>
 </tr>
@@ -1152,62 +1152,62 @@ built with GNU 13.3.0 for Linux x86_64</div>
 <thead><tr><th>参数</th><th>描述</th><th>环境变量</th></tr></thead>
 <tbody>
 <tr>
-<td class="param-name">--spec-draft-hf, -hfd, -hfrd, --hf-repo-draft <var>&lt;user&gt;/&lt;model&gt;[:quant]</var></td>
+<td class="param-name">--spec-draft-hf<br>-hfd<br>-hfrd<br>--hf-repo-draft <var>&lt;user&gt;/&lt;model&gt;[:quant]</var></td>
 <td class="param-desc">与 --hf-repo 相同，但用于草稿模型（draft model）<br><span class="param-default">默认：未使用</span></td>
 <td><span class="param-env">LLAMA_ARG_SPEC_DRAFT_HF_REPO</span></td>
 </tr>
 <tr>
-<td class="param-name">--spec-draft-threads, -td, --threads-draft <var>N</var></td>
+<td class="param-name">--spec-draft-threads<br>-td<br>--threads-draft <var>N</var></td>
 <td class="param-desc">草稿模型生成期间使用的线程数<br><span class="param-default">默认：与 --threads 相同</span></td>
 <td>—</td>
 </tr>
 <tr>
-<td class="param-name">--spec-draft-threads-batch, -tbd, --threads-batch-draft <var>N</var></td>
+<td class="param-name">--spec-draft-threads-batch<br>-tbd<br>--threads-batch-draft <var>N</var></td>
 <td class="param-desc">草稿模型批处理和提示词处理期间使用的线程数<br><span class="param-default">默认：与 --threads-draft 相同</span></td>
 <td>—</td>
 </tr>
 <tr>
-<td class="param-name">--spec-draft-cpu-mask, -Cd, --cpu-mask-draft <var>M</var></td>
+<td class="param-name">--spec-draft-cpu-mask<br>-Cd<br>--cpu-mask-draft <var>M</var></td>
 <td class="param-desc">草稿模型 CPU 亲和性掩码<br><span class="param-default">默认：与 --cpu-mask 相同</span></td>
 <td>—</td>
 </tr>
 <tr>
-<td class="param-name">--spec-draft-cpu-range, -Crd, --cpu-range-draft <var>lo-hi</var></td>
+<td class="param-name">--spec-draft-cpu-range<br>-Crd<br>--cpu-range-draft <var>lo-hi</var></td>
 <td class="param-desc">用于草稿模型亲和性的 CPU 范围</td>
 <td>—</td>
 </tr>
 <tr>
-<td class="param-name">--spec-draft-cpu-strict, --cpu-strict-draft <var>&lt;0|1&gt;</var></td>
+<td class="param-name">--spec-draft-cpu-strict<br>--cpu-strict-draft <var>&lt;0|1&gt;</var></td>
 <td class="param-desc">草稿模型是否使用严格的 CPU 放置策略<br><span class="param-default">默认：与 --cpu-strict 相同</span></td>
 <td>—</td>
 </tr>
 <tr>
-<td class="param-name">--spec-draft-prio, --prio-draft <var>N</var></td>
+<td class="param-name">--spec-draft-prio<br>--prio-draft <var>N</var></td>
 <td class="param-desc">设置草稿进程/线程优先级：0-normal、1-medium、2-high、3-realtime<br><span class="param-default">默认：0</span></td>
 <td>—</td>
 </tr>
 <tr>
-<td class="param-name">--spec-draft-poll, --poll-draft <var>&lt;0|1&gt;</var></td>
+<td class="param-name">--spec-draft-poll<br>--poll-draft <var>&lt;0|1&gt;</var></td>
 <td class="param-desc">草稿模型是否使用轮询等待任务<br><span class="param-default">默认：与 --poll 相同</span></td>
 <td>—</td>
 </tr>
 <tr>
-<td class="param-name">--spec-draft-cpu-mask-batch, -Cbd, --cpu-mask-batch-draft <var>M</var></td>
+<td class="param-name">--spec-draft-cpu-mask-batch<br>-Cbd<br>--cpu-mask-batch-draft <var>M</var></td>
 <td class="param-desc">草稿模型批处理的 CPU 亲和性掩码<br><span class="param-default">默认：与 --cpu-mask 相同</span></td>
 <td>—</td>
 </tr>
 <tr>
-<td class="param-name">--spec-draft-cpu-strict-batch, --cpu-strict-batch-draft <var>&lt;0|1&gt;</var></td>
+<td class="param-name">--spec-draft-cpu-strict-batch<br>--cpu-strict-batch-draft <var>&lt;0|1&gt;</var></td>
 <td class="param-desc">草稿模型批处理是否使用严格的 CPU 放置策略<br><span class="param-default">默认：与 --cpu-strict-draft 相同</span></td>
 <td>—</td>
 </tr>
 <tr>
-<td class="param-name">--spec-draft-prio-batch, --prio-batch-draft <var>N</var></td>
+<td class="param-name">--spec-draft-prio-batch<br>--prio-batch-draft <var>N</var></td>
 <td class="param-desc">设置草稿批处理进程/线程优先级<br><span class="param-default">默认：0</span></td>
 <td>—</td>
 </tr>
 <tr>
-<td class="param-name">--spec-draft-poll-batch, --poll-batch-draft <var>&lt;0|1&gt;</var></td>
+<td class="param-name">--spec-draft-poll-batch<br>--poll-batch-draft <var>&lt;0|1&gt;</var></td>
 <td class="param-desc">草稿模型批处理是否使用轮询等待任务<br><span class="param-default">默认：与 --poll-draft 相同</span></td>
 <td>—</td>
 </tr>
@@ -1222,7 +1222,7 @@ built with GNU 13.3.0 for Linux x86_64</div>
 <td><span class="param-env">LLAMA_ARG_SPEC_DRAFT_CPU_MOE</span></td>
 </tr>
 <tr>
-<td class="param-name">--spec-draft-n-cpu-moe, -ncmoed, --n-cpu-moe-draft <var>N</var></td>
+<td class="param-name">--spec-draft-n-cpu-moe<br>-ncmoed<br>--n-cpu-moe-draft <var>N</var></td>
 <td class="param-desc">将草稿模型的前 N 层 MoE 权重保留在 CPU 上</td>
 <td><span class="param-env">LLAMA_ARG_SPEC_DRAFT_N_CPU_MOE</span></td>
 </tr>
@@ -1237,12 +1237,12 @@ built with GNU 13.3.0 for Linux x86_64</div>
 <td><span class="param-env">LLAMA_ARG_SPEC_DRAFT_N_MIN</span></td>
 </tr>
 <tr>
-<td class="param-name">--spec-draft-p-split, --draft-p-split <var>P</var></td>
+<td class="param-name">--spec-draft-p-split<br>--draft-p-split <var>P</var></td>
 <td class="param-desc">投机解码拆分概率<br><span class="param-default">默认：0.10</span></td>
 <td><span class="param-env">LLAMA_ARG_SPEC_DRAFT_P_SPLIT</span></td>
 </tr>
 <tr>
-<td class="param-name">--spec-draft-p-min, --draft-p-min <var>P</var></td>
+<td class="param-name">--spec-draft-p-min<br>--draft-p-min <var>P</var></td>
 <td class="param-desc">最小投机解码概率（贪婪策略）<br><span class="param-default">默认：0.00</span></td>
 <td><span class="param-env">LLAMA_ARG_SPEC_DRAFT_P_MIN</span></td>
 </tr>
@@ -1252,27 +1252,27 @@ built with GNU 13.3.0 for Linux x86_64</div>
 <td><span class="param-env">LLAMA_ARG_SPEC_DRAFT_BACKEND_SAMPLING</span></td>
 </tr>
 <tr>
-<td class="param-name">--spec-draft-device, -devd, --device-draft <var>&lt;dev1,dev2,..&gt;</var></td>
+<td class="param-name">--spec-draft-device<br>-devd<br>--device-draft <var>&lt;dev1,dev2,..&gt;</var></td>
 <td class="param-desc">用于卸载草稿模型的设备列表（逗号分隔），none = 不卸载</td>
 <td>—</td>
 </tr>
 <tr>
-<td class="param-name">--spec-draft-ngl, -ngld, --gpu-layers-draft, --n-gpu-layers-draft <var>N</var></td>
+<td class="param-name">--spec-draft-ngl<br>-ngld<br>--gpu-layers-draft<br>--n-gpu-layers-draft <var>N</var></td>
 <td class="param-desc">存储在显存中的草稿模型最大层数<br><span class="param-default">默认：auto</span></td>
 <td><span class="param-env">LLAMA_ARG_N_GPU_LAYERS_DRAFT</span></td>
 </tr>
 <tr>
-<td class="param-name">--spec-draft-model, -md, --model-draft <var>FNAME</var></td>
+<td class="param-name">--spec-draft-model<br>-md<br>--model-draft <var>FNAME</var></td>
 <td class="param-desc">用于投机解码的草稿模型<br><span class="param-default">默认：未使用</span></td>
 <td><span class="param-env">LLAMA_ARG_SPEC_DRAFT_MODEL</span></td>
 </tr>
 <tr>
-<td class="param-name">--spec-draft-type-k, -ctkd, --cache-type-k-draft <var>TYPE</var></td>
+<td class="param-name">--spec-draft-type-k<br>-ctkd<br>--cache-type-k-draft <var>TYPE</var></td>
 <td class="param-desc">草稿模型 K 的 KV 缓存数据类型<br>允许值：f32, f16, bf16, q8_0, q4_0, q4_1, iq4_nl, q5_0, q5_1<br><span class="param-default">默认：f16</span></td>
 <td><span class="param-env">LLAMA_ARG_SPEC_DRAFT_CACHE_TYPE_K</span></td>
 </tr>
 <tr>
-<td class="param-name">--spec-draft-type-v, -ctvd, --cache-type-v-draft <var>TYPE</var></td>
+<td class="param-name">--spec-draft-type-v<br>-ctvd<br>--cache-type-v-draft <var>TYPE</var></td>
 <td class="param-desc">草稿模型 V 的 KV 缓存数据类型<br>允许值：f32, f16, bf16, q8_0, q4_0, q4_1, iq4_nl, q5_0, q5_1<br><span class="param-default">默认：f16</span></td>
 <td><span class="param-env">LLAMA_ARG_SPEC_DRAFT_CACHE_TYPE_V</span></td>
 </tr>
@@ -1359,12 +1359,12 @@ built with GNU 13.3.0 for Linux x86_64</div>
 <thead><tr><th>参数</th><th>说明</th><th>替代方案</th></tr></thead>
 <tbody>
 <tr>
-<td class="param-name">--draft, --draft-n, --draft-max <var>N</var></td>
+<td class="param-name">--draft<br>--draft-n<br>--draft-max <var>N</var></td>
 <td class="param-desc"><span class="param-deprecated">[已移除]</span></td>
 <td>使用 <code>--spec-draft-n-max</code> 或 <code>--spec-ngram-mod-n-max</code></td>
 </tr>
 <tr>
-<td class="param-name">--draft-min, --draft-n-min <var>N</var></td>
+<td class="param-name">--draft-min<br>--draft-n-min <var>N</var></td>
 <td class="param-desc"><span class="param-deprecated">[已移除]</span></td>
 <td>使用 <code>--spec-draft-n-min</code> 或 <code>--spec-ngram-mod-n-min</code></td>
 </tr>
@@ -1398,27 +1398,27 @@ built with GNU 13.3.0 for Linux x86_64</div>
 <thead><tr><th>参数</th><th>描述</th><th>环境变量</th></tr></thead>
 <tbody>
 <tr>
-<td class="param-name">-lcs, --lookup-cache-static <var>FNAME</var></td>
+<td class="param-name">-lcs<br>--lookup-cache-static <var>FNAME</var></td>
 <td class="param-desc">用于查找解码的静态查找缓存路径（不随生成更新）</td>
 <td>—</td>
 </tr>
 <tr>
-<td class="param-name">-lcd, --lookup-cache-dynamic <var>FNAME</var></td>
+<td class="param-name">-lcd<br>--lookup-cache-dynamic <var>FNAME</var></td>
 <td class="param-desc">用于查找解码的动态查找缓存路径（随生成更新）</td>
 <td>—</td>
 </tr>
 <tr>
-<td class="param-name">-ctxcp, --ctx-checkpoints, --swa-checkpoints <var>N</var></td>
+<td class="param-name">-ctxcp<br>--ctx-checkpoints<br>--swa-checkpoints <var>N</var></td>
 <td class="param-desc">每个槽（slot）创建的最大上下文检查点数量<br><span class="param-default">默认：32</span><br>更多信息：<a href="https://github.com/ggml-org/llama.cpp/pull/15293" target="_blank">PR #15293</a></td>
 <td><span class="param-env">LLAMA_ARG_CTX_CHECKPOINTS</span></td>
 </tr>
 <tr>
-<td class="param-name">-cpent, --checkpoint-every-n-tokens <var>N</var></td>
+<td class="param-name">-cpent<br>--checkpoint-every-n-tokens <var>N</var></td>
 <td class="param-desc">在预填充（处理）期间每 N 个 token 创建一个检查点，-1 禁用<br><span class="param-default">默认：8192</span></td>
 <td><span class="param-env">LLAMA_ARG_CHECKPOINT_EVERY_NT</span></td>
 </tr>
 <tr>
-<td class="param-name">-cram, --cache-ram <var>N</var></td>
+<td class="param-name">-cram<br>--cache-ram <var>N</var></td>
 <td class="param-desc">设置最大缓存大小（MiB），-1 = 无限制，0 = 禁用<br><span class="param-default">默认：8192</span><br>更多信息：<a href="https://github.com/ggml-org/llama.cpp/pull/16391" target="_blank">PR #16391</a></td>
 <td><span class="param-env">LLAMA_ARG_CACHE_RAM</span></td>
 </tr>
@@ -1448,12 +1448,12 @@ built with GNU 13.3.0 for Linux x86_64</div>
 <td><span class="param-env">LLAMA_ARG_CONTEXT_SHIFT</span></td>
 </tr>
 <tr>
-<td class="param-name">-r, --reverse-prompt <var>PROMPT</var></td>
+<td class="param-name">-r<br>--reverse-prompt <var>PROMPT</var></td>
 <td class="param-desc">在 PROMPT 处停止生成，在交互模式下返回控制权</td>
 <td>—</td>
 </tr>
 <tr>
-<td class="param-name">-sp, --special</td>
+<td class="param-name">-sp<br>--special</td>
 <td class="param-desc">启用特殊 token 输出<br><span class="param-default">默认：false</span></td>
 <td>—</td>
 </tr>
@@ -1473,7 +1473,7 @@ built with GNU 13.3.0 for Linux x86_64</div>
 <td><span class="param-env">LLAMA_ARG_POOLING</span></td>
 </tr>
 <tr>
-<td class="param-name">-np, --parallel <var>N</var></td>
+<td class="param-name">-np<br>--parallel <var>N</var></td>
 <td class="param-desc">服务器槽（slot）数量<br><span class="param-default">默认：-1（auto）</span></td>
 <td><span class="param-env">LLAMA_ARG_N_PARALLEL</span></td>
 </tr>
@@ -1493,12 +1493,12 @@ built with GNU 13.3.0 for Linux x86_64</div>
 <thead><tr><th>参数</th><th>描述</th><th>环境变量</th></tr></thead>
 <tbody>
 <tr>
-<td class="param-name">-mm, --mmproj <var>FILE</var></td>
+<td class="param-name">-mm<br>--mmproj <var>FILE</var></td>
 <td class="param-desc">多模态投影器（multimodal projector）文件路径。参见 tools/mtmd/README.md<br>注意：如果使用 -hf，可以省略此参数</td>
 <td><span class="param-env">LLAMA_ARG_MMPROJ</span></td>
 </tr>
 <tr>
-<td class="param-name">-mmu, --mmproj-url <var>URL</var></td>
+<td class="param-name">-mmu<br>--mmproj-url <var>URL</var></td>
 <td class="param-desc">多模态投影器文件的 URL</td>
 <td><span class="param-env">LLAMA_ARG_MMPROJ_URL</span></td>
 </tr>
@@ -1533,7 +1533,7 @@ built with GNU 13.3.0 for Linux x86_64</div>
 <thead><tr><th>参数</th><th>描述</th><th>环境变量</th></tr></thead>
 <tbody>
 <tr>
-<td class="param-name">-a, --alias <var>STRING</var></td>
+<td class="param-name">-a<br>--alias <var>STRING</var></td>
 <td class="param-desc">设置模型名称别名（逗号分隔），供 API 使用</td>
 <td><span class="param-env">LLAMA_ARG_ALIAS</span></td>
 </tr>
@@ -1573,7 +1573,7 @@ built with GNU 13.3.0 for Linux x86_64</div>
 <td><span class="param-env">LLAMA_ARG_API_PREFIX</span></td>
 </tr>
 <tr>
-<td class="param-name">-to, --timeout <var>N</var></td>
+<td class="param-name">-to<br>--timeout <var>N</var></td>
 <td class="param-desc">服务器读写超时时间（秒）<br><span class="param-default">默认：600</span></td>
 <td><span class="param-env">LLAMA_ARG_TIMEOUT</span></td>
 </tr>
@@ -1728,7 +1728,7 @@ built with GNU 13.3.0 for Linux x86_64</div>
 <td><span class="param-env">LLAMA_ARG_PREFILL_ASSISTANT</span></td>
 </tr>
 <tr>
-<td class="param-name">-sps, --slot-prompt-similarity <var>SIMILARITY</var></td>
+<td class="param-name">-sps<br>--slot-prompt-similarity <var>SIMILARITY</var></td>
 <td class="param-desc">请求的提示词与槽的提示词需要匹配多少才能使用该槽<br><span class="param-default">默认：0.10（0.0 = 禁用）</span></td>
 <td>—</td>
 </tr>
@@ -1762,7 +1762,7 @@ built with GNU 13.3.0 for Linux x86_64</div>
 <td><span class="param-env">LLAMA_ARG_THINK</span></td>
 </tr>
 <tr>
-<td class="param-name">-rea, --reasoning <var>[on|off|auto]</var></td>
+<td class="param-name">-rea<br>--reasoning <var>[on|off|auto]</var></td>
 <td class="param-desc">在聊天中使用推理/思考模式<br><span class="param-default">默认：auto（从模板检测）</span></td>
 <td><span class="param-env">LLAMA_ARG_REASONING</span></td>
 </tr>
@@ -1851,7 +1851,7 @@ built with GNU 13.3.0 for Linux x86_64</div>
 <thead><tr><th>参数</th><th>描述</th></tr></thead>
 <tbody>
 <tr>
-<td class="param-name">-mv, --model-vocoder <var>FNAME</var></td>
+<td class="param-name">-mv<br>--model-vocoder <var>FNAME</var></td>
 <td class="param-desc">用于音频生成的声码器（vocoder）模型<br><span class="param-default">默认：未使用</span></td>
 </tr>
 <tr>
