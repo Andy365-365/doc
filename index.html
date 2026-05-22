@@ -11,6 +11,7 @@ body{background:#0d1117;color:#c9d1d9;font-family:-apple-system,BlinkMacSystemFo
 /* Header */
 .header{display:flex;align-items:center;gap:12px;padding:8px 16px;background:#161b22;border-bottom:1px solid #30363d;flex-shrink:0}
 .header h1{font-size:1rem;color:#58a6ff;white-space:nowrap}
+.header .article-title{font-size:0.85rem;color:#8b949e;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .back-btn{display:none;padding:4px 12px;background:#21262d;color:#58a6ff;border:1px solid #30363d;border-radius:6px;cursor:pointer;font-size:0.85rem;white-space:nowrap}
 .back-btn:hover{background:#30363d}
 
@@ -18,32 +19,74 @@ body{background:#0d1117;color:#c9d1d9;font-family:-apple-system,BlinkMacSystemFo
 .container{display:flex;flex:1;overflow:hidden}
 
 /* Sidebar */
-.sidebar{width:320px;min-width:320px;border-right:1px solid #21262d;display:flex;flex-direction:column;background:#0d1117;overflow:hidden}
-.sidebar-header{padding:12px 16px;border-bottom:1px solid #21262d}
+.sidebar{width:340px;min-width:340px;border-right:1px solid #21262d;display:flex;flex-direction:column;background:#0d1117;overflow:hidden}
+.sidebar-header{padding:12px 16px;border-bottom:1px solid #21262d;display:flex;justify-content:space-between;align-items:center}
 .sidebar-header .count{color:#8b949e;font-size:0.8rem}
 .search-box{padding:8px 12px;border-bottom:1px solid #21262d}
 .search-box input{width:100%;padding:6px 10px;background:#0d1117;border:1px solid #30363d;border-radius:6px;color:#c9d1d9;font-size:0.85rem;outline:none}
 .search-box input:focus{border-color:#58a6ff}
 .article-list{flex:1;overflow-y:auto}
-.article-item{display:flex;align-items:center;padding:10px 16px;cursor:pointer;border-bottom:1px solid #21262d;transition:background 0.15s}
-.article-item:hover{background:#161b22}
-.article-item.active{background:#161b22;border-left:3px solid #58a6ff}
-.article-item .title{flex:1;font-size:0.85rem;line-height:1.3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.article-item .ver{color:#8b949e;font-size:0.75rem;margin-left:8px;flex-shrink:0}
 
-/* Main content */
-.main{flex:1;display:flex;align-direction:column;overflow:hidden}
-.welcome{display:flex;align-items:center;justify-content:center;flex:1;color:#8b949e;font-size:1rem}
-iframe{flex:1;border:none;background:#fff;width:100%;height:100%}
+/* Category groups */
+.cat-group{border-bottom:1px solid #21262d}
+.cat-header{display:flex;align-items:center;padding:10px 16px;cursor:pointer;font-size:0.85rem;font-weight:600;color:#8b949e;user-select:none;transition:color 0.15s}
+.cat-header:hover{color:#c9d1d9}
+.cat-header .arrow{margin-right:6px;transition:transform 0.2s;font-size:0.7rem}
+.cat-header.collapsed .arrow{transform:rotate(-90deg)}
+.cat-header .cat-count{margin-left:auto;font-size:0.75rem;color:#484f58;font-weight:400}
+.cat-items{overflow:hidden;transition:max-height 0.3s ease}
+.cat-items.collapsed{max-height:0!important}
+
+.article-item{display:flex;align-items:baseline;padding:7px 16px 7px 32px;cursor:pointer;transition:background 0.15s;font-size:0.82rem;line-height:1.3}
+.article-item:hover{background:#161b22}
+.article-item.active{background:#161b22;color:#58a6ff;border-left:3px solid #58a6ff;padding-left:29px}
+.article-item .ver{color:#484f58;font-size:0.7rem;margin-left:auto;flex-shrink:0}
+
+/* Main content - unified reader */
+.main{flex:1;overflow:hidden;display:flex;flex-direction:column}
+.welcome{display:flex;align-items:center;justify-content:center;flex:1;color:#484f58;font-size:1.1rem;flex-direction:column;gap:12px}
+.welcome .icon{font-size:3rem;opacity:0.5}
+
+/* Loading */
+.loading{display:none;align-items:center;justify-content:center;flex:1;color:#8b949e;font-size:0.9rem;flex-direction:column;gap:12px}
+.spinner{width:32px;height:32px;border:3px solid #21262d;border-top-color:#58a6ff;border-radius:50%;animation:spin 0.8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* Reader container - unified styles */
+.reader{display:none;flex:1;overflow-y:auto;padding:32px 48px;max-width:900px;margin:0 auto;width:100%}
+.reader h1{color:#e6edf3;font-size:1.8rem;margin:24px 0 16px;padding-bottom:12px;border-bottom:1px solid #21262d;line-height:1.3}
+.reader h2{color:#e6edf3;font-size:1.4rem;margin:28px 0 12px;padding-bottom:8px;border-bottom:1px solid #21262d;line-height:1.3}
+.reader h3{color:#e6edf3;font-size:1.15rem;margin:24px 0 10px}
+.reader h4{color:#e6edf3;font-size:1rem;margin:20px 0 8px}
+.reader p{margin:12px 0;line-height:1.8;font-size:0.95rem;color:#c9d1d9}
+.reader a{color:#58a6ff;text-decoration:none}
+.reader a:hover{text-decoration:underline}
+.reader strong{color:#e6edf3}
+.reader em{color:#8b949e;font-style:italic}
+.reader ul,.reader ol{margin:12px 0;padding-left:24px}
+.reader li{margin:6px 0;line-height:1.7;font-size:0.95rem}
+.reader blockquote{border-left:4px solid #388bfd;padding:12px 16px;margin:16px 0;background:#161b22;border-radius:0 6px 6px 0;color:#8b949e}
+.reader table{border-collapse:collapse;margin:16px 0;width:100%;font-size:0.9rem}
+.reader th{background:#161b22;color:#e6edf3;font-weight:600;text-align:left;padding:10px 14px;border:1px solid #30363d}
+.reader td{padding:10px 14px;border:1px solid #30363d;color:#c9d1d9}
+.reader tr:nth-child(even){background:#0d1117}
+.reader tr:nth-child(odd){background:#161b22}
+.reader code{background:#1c2128;padding:2px 6px;border-radius:4px;font-size:0.85em;color:#f0883e;font-family:"Fira Code","Cascadia Code","JetBrains Mono",Consolas,monospace}
+.reader pre{background:#161b22;border:1px solid #30363d;border-radius:8px;padding:16px;margin:16px 0;overflow-x:auto;line-height:1.5}
+.reader pre code{background:none;padding:0;color:#c9d1d9;font-size:0.85rem}
+.reader img{max-width:100%;height:auto;border-radius:8px;margin:16px 0;box-shadow:0 2px 12px rgba(0,0,0,0.4)}
+.reader hr{border:none;border-top:1px solid #21262d;margin:24px 0}
+.reader .toc-nav,.reader #toc-wrapper,.reader #toc-toggle,.reader nav{display:none!important}
 
 /* Scrollbar */
-.article-list::-webkit-scrollbar{width:6px}
-.article-list::-webkit-scrollbar-track{background:#0d1117}
-.article-list::-webkit-scrollbar-thumb{background:#30363d;border-radius:3px}
+.article-list::-webkit-scrollbar,.reader::-webkit-scrollbar{width:6px}
+.article-list::-webkit-scrollbar-track,.reader::-webkit-scrollbar-track{background:transparent}
+.article-list::-webkit-scrollbar-thumb,.reader::-webkit-scrollbar-thumb{background:#30363d;border-radius:3px}
 
 /* Responsive */
 @media(max-width:768px){
-  .sidebar{width:260px;min-width:260px}
+  .sidebar{width:280px;min-width:280px}
+  .reader{padding:20px 24px}
 }
 </style>
 </head>
@@ -51,90 +94,161 @@ iframe{flex:1;border:none;background:#fff;width:100%;height:100%}
 
 <div class="header">
   <h1>技术文档翻译合集</h1>
-  <button class="back-btn" onclick="goBack()">&#8592; 返回列表</button>
+  <span class="article-title" id="headerTitle"></span>
+  <button class="back-btn" id="backBtn" onclick="goBack()">&#8592; 返回列表</button>
 </div>
 
 <div class="container">
   <div class="sidebar">
     <div class="sidebar-header">
-      <span class="count">共 27 篇文章</span>
+      <span class="count" id="totalCount"></span>
     </div>
     <div class="search-box">
-      <input type="text" id="search" placeholder="搜索文章..." oninput="filterArticles()">
+      <input type="text" id="search" placeholder="搜索文章标题..." oninput="filterArticles()">
     </div>
     <div class="article-list" id="articleList"></div>
   </div>
   <div class="main" id="mainContent">
-    <div class="welcome">从左侧选择一篇文章</div>
+    <div class="welcome" id="welcome"><div class="icon">&#128214;</div><span>从左侧选择一篇文章</span></div>
+    <div class="loading" id="loading"><div class="spinner"></div><span>加载中...</span></div>
+    <div class="reader" id="reader"></div>
   </div>
 </div>
 
 <script>
-const articles = [["AI \u667a\u80fd\u4f53\u8bb0\u5fc6\u7cfb\u7edf\u73b0\u72b6\u6df1\u5ea6\u8c03\u7814", "AI \u667a\u80fd\u4f53\u8bb0\u5fc6\u7cfb\u7edf\u73b0\u72b6\u6df1\u5ea6\u8c03\u7814_v6.21.html", "6.21"], ["Claude Code + \u672c\u5730 LLM \u7684 KV Cache \u590d\u7528\u5931\u6548\u95ee\u9898\u6392\u67e5\u5168\u8bb0\u5f55", "Claude Code + \u672c\u5730 LLM \u7684 KV Cache \u590d\u7528\u5931\u6548\u95ee\u9898\u6392\u67e5\u5168\u8bb0\u5f55_v1.4.html", "1.4"], ["Harness\u5de5\u7a0b\u521d\u63a2", "Harness\u5de5\u7a0b\u521d\u63a2_v6.21.html", "6.21"], ["Hermes 7 \u6b65\u5c01\u795e\u64cd\u4f5c\uff1aToken \u7701 80_+ \u957f\u671f\u8bb0\u5fc6\u4f18\u5316\uff0c\u6548\u7387\u76f4\u63a5\u70b8\u88c2", "Hermes 7 \u6b65\u5c01\u795e\u64cd\u4f5c\uff1aToken \u7701 80_+ \u957f\u671f\u8bb0\u5fc6\u4f18\u5316\uff0c\u6548\u7387\u76f4\u63a5\u70b8\u88c2_v1.3.html", "1.3"], ["Hermes Agent \u7814\u7a76", "Hermes Agent \u7814\u7a76_v6.21.html", "6.21"], ["Hermes Agent\u7206\u706b\uff0c\u804a\u804a\u4e0eOpenClaw \u5230\u5e95\u533a\u522b\u5728\u54ea", "Hermes Agent\u7206\u706b\uff0c\u804a\u804a\u4e0eOpenClaw \u5230\u5e95\u533a\u522b\u5728\u54ea_v1.0.html", "1.0"], ["OpenClaw \u6df1\u5ea6\u89e3\u6784", "OpenClaw \u6df1\u5ea6\u89e3\u6784_v6.21.html", "6.21"], ["OpenClaw\u6df1\u5ea6\u5206\u6790", "OpenClaw\u6df1\u5ea6\u5206\u6790_v6.21.html", "6.21"], ["OpenClaw\u751f\u6001Skill\u8c03\u7814", "OpenClaw\u751f\u6001Skill\u8c03\u7814_v1.3.html", "1.3"], ["llamacpp-checkpoint-fix-speeds-local-coding-agents-v019", "llamacpp-checkpoint-fix-speeds-local-coding-agents-v019.html", ""], ["lucebox-hub-readme-\u7ffb\u8bd1", "lucebox-hub-readme-\u7ffb\u8bd1.html", ""], ["lucebox-hub-\u5b8c\u6574\u7ffb\u8bd1", "lucebox-hub-\u5b8c\u6574\u7ffb\u8bd1.html", ""], ["qwen36-27b-dual-rtx-3090-vllm-v019", "qwen36-27b-dual-rtx-3090-vllm-v019.html", ""], ["running-qwen36-27b-dual-rtx-3090-vllm-v019", "running-qwen36-27b-dual-rtx-3090-vllm-v019.html", ""], ["\u4e00\u6587\u5168\u9762\u63a2\u7a76Harness Engineering", "\u4e00\u6587\u5168\u9762\u63a2\u7a76Harness Engineering_v6.21.html", "6.21"], ["\u4ece 305 GB \u5230 7.4 GB\uff1a\u5927\u6a21\u578b KVCache \u67b6\u6784\u6f14\u8fdb\u5168\u666f", "\u4ece 305 GB \u5230 7.4 GB\uff1a\u5927\u6a21\u578b KVCache \u67b6\u6784\u6f14\u8fdb\u5168\u666f_v1.0.html", "1.0"], ["\u4ece30\u523060 Tokens\u6bcf\u79d2-\u5982\u4f55\u5728\u53ccRTX 3090\u4e0a\u8fd0\u884cvLLM", "\u4ece30\u523060 Tokens\u6bcf\u79d2-\u5982\u4f55\u5728\u53ccRTX 3090\u4e0a\u8fd0\u884cvLLM_v2.html", "2"], ["\u4f7f\u7528 llama.cpp + MTP \u5206\u652f\u5b9e\u73b0 1.5 \u500d Token \u8f93\u51fa\u52a0\u901f\u5b9e\u6218\u6307\u5357", "\u4f7f\u7528 llama.cpp + MTP \u5206\u652f\u5b9e\u73b0 1.5 \u500d Token \u8f93\u51fa\u52a0\u901f\u5b9e\u6218\u6307\u5357_v1.2.html", "1.2"], ["\u5927\u6a21\u578bRAG\u5b9e\u6218\uff0c\u4ece\u88ab\u9a82\u4e0d\u9760\u8c31\u5230\u6210\u4e3a\u90e8\u95e8MVP\uff0c\u8fd9\u662f\u6211\u7684\u8e29\u5751\u5168\u8bb0\u5f55", "\u5927\u6a21\u578bRAG\u5b9e\u6218\uff0c\u4ece\u88ab\u9a82\u4e0d\u9760\u8c31\u5230\u6210\u4e3a\u90e8\u95e8MVP\uff0c\u8fd9\u662f\u6211\u7684\u8e29\u5751\u5168\u8bb0\u5f55_v1.0.html", "1.0"], ["\u5927\u6a21\u578bRAG\u5b9e\u6218\uff0c\u4ece\u88ab\u9a82\u4e0d\u9760\u8c31\u5230\u6210\u4e3a\u90e8\u95e8MVP\uff0c\u8fd9\u662f\u6211\u7684\u8e29\u5751\u5168\u8bb0\u5f55", "\u5927\u6a21\u578bRAG\u5b9e\u6218\uff0c\u4ece\u88ab\u9a82\u4e0d\u9760\u8c31\u5230\u6210\u4e3a\u90e8\u95e8MVP\uff0c\u8fd9\u662f\u6211\u7684\u8e29\u5751\u5168\u8bb0\u5f55_v1.1 (1).html", "1.1 (1)"], ["\u5927\u6a21\u578bRAG\u5b9e\u6218\uff0c\u4ece\u88ab\u9a82\u4e0d\u9760\u8c31\u5230\u6210\u4e3a\u90e8\u95e8MVP\uff0c\u8fd9\u662f\u6211\u7684\u8e29\u5751\u5168\u8bb0\u5f55", "\u5927\u6a21\u578bRAG\u5b9e\u6218\uff0c\u4ece\u88ab\u9a82\u4e0d\u9760\u8c31\u5230\u6210\u4e3a\u90e8\u95e8MVP\uff0c\u8fd9\u662f\u6211\u7684\u8e29\u5751\u5168\u8bb0\u5f55_v1.1 (2).html", "1.1 (2)"], ["\u5927\u6a21\u578bRAG\u5b9e\u6218\uff0c\u4ece\u88ab\u9a82\u4e0d\u9760\u8c31\u5230\u6210\u4e3a\u90e8\u95e8MVP\uff0c\u8fd9\u662f\u6211\u7684\u8e29\u5751\u5168\u8bb0\u5f55", "\u5927\u6a21\u578bRAG\u5b9e\u6218\uff0c\u4ece\u88ab\u9a82\u4e0d\u9760\u8c31\u5230\u6210\u4e3a\u90e8\u95e8MVP\uff0c\u8fd9\u662f\u6211\u7684\u8e29\u5751\u5168\u8bb0\u5f55_v1.1.html", "1.1"], ["\u5927\u6a21\u578b\u5782\u76f4\u9886\u57df\u5fae\u8c03\u7cfb\u5217\uff08\u4e00\uff09\uff1a\u8ba4\u8bc6\u5fae\u8c03", "\u5927\u6a21\u578b\u5782\u76f4\u9886\u57df\u5fae\u8c03\u7cfb\u5217\uff08\u4e00\uff09\uff1a\u8ba4\u8bc6\u5fae\u8c03_v1.7.html", "1.7"], ["\u5927\u6a21\u578b\u5782\u76f4\u9886\u57df\u5fae\u8c03\u7cfb\u5217\uff08\u4e09\uff09\uff1a\u5b8c\u6574\u5b9e\u6218\u4e0e\u6700\u4f73\u5b9e\u8df5", "\u5927\u6a21\u578b\u5782\u76f4\u9886\u57df\u5fae\u8c03\u7cfb\u5217\uff08\u4e09\uff09\uff1a\u5b8c\u6574\u5b9e\u6218\u4e0e\u6700\u4f73\u5b9e\u8df5_v1.7.html", "1.7"], ["\u5927\u6a21\u578b\u5782\u76f4\u9886\u57df\u5fae\u8c03\u7cfb\u5217\uff08\u4e8c\uff09\uff1ams-swift \u6846\u67b6\u5168\u666f", "\u5927\u6a21\u578b\u5782\u76f4\u9886\u57df\u5fae\u8c03\u7cfb\u5217\uff08\u4e8c\uff09\uff1ams-swift \u6846\u67b6\u5168\u666f_v1.7.html", "1.7"], ["\u5982\u4f55\u7f16\u5199\u9ad8\u8d28\u91cf\u7684agent skill\uff1f", "\u5982\u4f55\u7f16\u5199\u9ad8\u8d28\u91cf\u7684agent skill\uff1f_v6.21.html", "6.21"], ["\u901a\u8fc7\u793a\u4f8b\u7406\u89e3\u7433\u746f\u6ee1\u76ee\u7684\u57fa\u51c6\u6d4b\u8bd5", "\u901a\u8fc7\u793a\u4f8b\u7406\u89e3\u7433\u746f\u6ee1\u76ee\u7684\u57fa\u51c6\u6d4b\u8bd5_v6.21.html", "6.21"]];
+const categories = {"vLLM / 推理加速": [["Claude Code + 本地 LLM 的 KV Cache 复用失效问题排查全记录", "Claude Code + 本地 LLM 的 KV Cache 复用失效问题排查全记录_v1.4.html", "1.4"], ["llamacpp-checkpoint-fix-speeds-local-coding-agents-v019", "llamacpp-checkpoint-fix-speeds-local-coding-agents-v019.html", ""], ["qwen36-27b-dual-rtx-3090-vllm-v019", "qwen36-27b-dual-rtx-3090-vllm-v019.html", ""], ["running-qwen36-27b-dual-rtx-3090-vllm-v019", "running-qwen36-27b-dual-rtx-3090-vllm-v019.html", ""], ["从 305 GB 到 7.4 GB：大模型 KVCache 架构演进全景", "从 305 GB 到 7.4 GB：大模型 KVCache 架构演进全景_v1.0.html", "1.0"], ["从30到60 Tokens每秒-如何在双RTX 3090上运行vLLM", "从30到60 Tokens每秒-如何在双RTX 3090上运行vLLM_v2.html", "2"], ["使用 llama.cpp + MTP 分支实现 1.5 倍 Token 输出加速实战指南", "使用 llama.cpp + MTP 分支实现 1.5 倍 Token 输出加速实战指南_v1.2.html", "1.2"]], "Agent / 智能体": [["AI 智能体记忆系统现状深度调研", "AI 智能体记忆系统现状深度调研_v6.21.html", "6.21"], ["Hermes 7 步封神操作：Token 省 80%+ 长期记忆优化", "Hermes 7 步封神操作：Token 省 80_+ 长期记忆优化，效率直接炸裂_v1.3.html", "1.3"], ["Hermes Agent 研究", "Hermes Agent 研究_v6.21.html", "6.21"], ["Hermes Agent爆火，聊聊与OpenClaw 到底区别在哪", "Hermes Agent爆火，聊聊与OpenClaw 到底区别在哪_v1.0.html", "1.0"], ["OpenClaw 深度解构", "OpenClaw 深度解构_v6.21.html", "6.21"], ["OpenClaw深度分析", "OpenClaw深度分析_v6.21.html", "6.21"], ["OpenClaw生态Skill调研", "OpenClaw生态Skill调研_v1.3.html", "1.3"], ["lucebox-hub-readme-翻译", "lucebox-hub-readme-翻译.html", ""], ["lucebox-hub-完整翻译", "lucebox-hub-完整翻译.html", ""], ["如何编写高质量的agent skill？", "如何编写高质量的agent skill？_v6.21.html", "6.21"]], "微调 / Fine-tuning": [["大模型垂直领域微调系列（一）：认识微调", "大模型垂直领域微调系列（一）：认识微调_v1.7.html", "1.7"], ["大模型垂直领域微调系列（二）：ms-swift 框架全景", "大模型垂直领域微调系列（二）：ms-swift 框架全景_v1.7.html", "1.7"], ["大模型垂直领域微调系列（三）：完整实战与最佳实践", "大模型垂直领域微调系列（三）：完整实战与最佳实践_v1.7.html", "1.7"]], "RAG": [["大模型RAG实战 v1.0", "大模型RAG实战，从被骂不靠谱到成为部门MVP，这是我的踩坑全记录_v1.0.html", "1.0"], ["大模型RAG实战 v1.1", "大模型RAG实战，从被骂不靠谱到成为部门MVP，这是我的踩坑全记录_v1.1.html", "1.1"], ["大模型RAG实战 v1.1 (1)", "大模型RAG实战，从被骂不靠谱到成为部门MVP，这是我的踩坑全记录_v1.1 (1).html", "1.1 (1)"], ["大模型RAG实战 v1.1 (2)", "大模型RAG实战，从被骂不靠谱到成为部门MVP，这是我的踩坑全记录_v1.1 (2).html", "1.1 (2)"]], "基准测试 / Harness": [["Harness工程初探", "Harness工程初探_v6.21.html", "6.21"], ["一文全面探究Harness Engineering", "一文全面探究Harness Engineering_v6.21.html", "6.21"], ["通过示例理解琳瑯满目的基准测试", "通过示例理解琳瑯满目的基准测试_v6.21.html", "6.21"]]};
 
+let allArticles = [];
 let currentArticle = null;
+
+// Flatten articles with category info
+for (const [cat, articles] of Object.entries(categories)) {
+  articles.forEach(a => {
+    allArticles.push({title: a[0], file: a[1], ver: a[2], cat: cat});
+  });
+}
+
+document.getElementById('totalCount').textContent = '共 ' + allArticles.length + ' 篇文章';
 
 function init() {
   const list = document.getElementById('articleList');
-  articles.forEach((a, i) => {
-    const div = document.createElement('div');
-    div.className = 'article-item';
-    div.dataset.index = i;
-    div.innerHTML = '<span class="title">' + a[0] + '</span>' + (a[2] ? '<span class="ver">' + a[2] + '</span>' : '');
-    div.onclick = () => openArticle(i);
-    list.appendChild(div);
-  });
+  for (const [cat, articles] of Object.entries(categories)) {
+    const group = document.createElement('div');
+    group.className = 'cat-group';
+    group.dataset.cat = cat;
+
+    const header = document.createElement('div');
+    header.className = 'cat-header';
+    header.innerHTML = '<span class="arrow">&#9660;</span> ' + cat + ' <span class="cat-count">' + articles.length + '</span>';
+    header.onclick = () => {
+      header.classList.toggle('collapsed');
+      items.classList.toggle('collapsed');
+    };
+
+    const items = document.createElement('div');
+    items.className = 'cat-items';
+    items.style.maxHeight = articles.length * 40 + 'px';
+
+    articles.forEach((a, i) => {
+      const div = document.createElement('div');
+      div.className = 'article-item';
+      div.dataset.file = a[1];
+      div.innerHTML = '<span>' + a[0] + '</span>' + (a[2] ? '<span class="ver">v' + a[2] + '</span>' : '');
+      div.onclick = () => openArticle(a[1], a[0]);
+      items.appendChild(div);
+    });
+
+    group.appendChild(header);
+    group.appendChild(items);
+    list.appendChild(group);
+  }
 
   // Check URL hash
   const hash = window.location.hash.slice(1);
   if (hash) {
-    const idx = articles.findIndex(a => a[1] === decodeURIComponent(hash));
-    if (idx >= 0) openArticle(idx);
+    const decoded = decodeURIComponent(hash);
+    openArticle(decoded, allArticles.find(a => a.file === decoded)?.title || '');
   }
 }
 
-function openArticle(idx) {
-  const a = articles[idx];
-  currentArticle = idx;
+async function openArticle(file, title) {
+  currentArticle = file;
+  window.location.hash = encodeURIComponent(file);
 
-  // Update URL
-  window.location.hash = encodeURIComponent(a[1]);
-
-  // Highlight active
-  document.querySelectorAll('.article-item').forEach((el, i) => {
-    el.classList.toggle('active', i === idx);
+  // Highlight
+  document.querySelectorAll('.article-item').forEach(el => {
+    el.classList.toggle('active', el.dataset.file === file);
   });
 
-  // Show iframe
-  const main = document.getElementById('mainContent');
-  main.innerHTML = '<iframe src="' + a[1] + '" sandbox="allow-same-origin allow-scripts"></iframe>';
+  // Header
+  document.getElementById('headerTitle').textContent = title;
+  document.getElementById('backBtn').style.display = 'block';
 
-  // Show back button
-  document.querySelector('.back-btn').style.display = 'block';
+  // Show loading
+  document.getElementById('welcome').style.display = 'none';
+  document.getElementById('reader').style.display = 'none';
+  document.getElementById('loading').style.display = 'flex';
+
+  try {
+    const resp = await fetch(file);
+    const text = await resp.text();
+    const doc = new DOMParser().parseFromString(text, 'text/html');
+
+    // Extract body content
+    const body = doc.body;
+
+    // Remove scripts, styles, TOC, nav elements
+    body.querySelectorAll('script, style, nav, #toc-wrapper, #toc-toggle, .toc-nav').forEach(el => el.remove());
+
+    // Remove inline nav links we added earlier
+    body.querySelectorAll('a[href="index.html"]').forEach(el => el.parentElement?.remove() || el.remove());
+
+    const reader = document.getElementById('reader');
+    reader.innerHTML = body.innerHTML;
+
+    // Hide loading, show reader
+    document.getElementById('loading').style.display = 'none';
+    reader.style.display = 'block';
+    reader.scrollTop = 0;
+
+  } catch (e) {
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('welcome').style.display = 'flex';
+    document.getElementById('welcome').innerHTML = '<div class="icon">&#9888;</div><span>加载失败: ' + e.message + '</span>';
+  }
 }
 
 function goBack() {
   currentArticle = null;
   window.location.hash = '';
   document.querySelectorAll('.article-item').forEach(el => el.classList.remove('active'));
-  document.getElementById('mainContent').innerHTML = '<div class="welcome">从左侧选择一篇文章</div>';
-  document.querySelector('.back-btn').style.display = 'none';
+  document.getElementById('headerTitle').textContent = '';
+  document.getElementById('backBtn').style.display = 'none';
+  document.getElementById('reader').style.display = 'none';
+  document.getElementById('loading').style.display = 'none';
+  document.getElementById('welcome').style.display = 'flex';
+  document.getElementById('welcome').innerHTML = '<div class="icon">&#128214;</div><span>从左侧选择一篇文章</span>';
 }
 
 function filterArticles() {
   const q = document.getElementById('search').value.toLowerCase();
   document.querySelectorAll('.article-item').forEach(el => {
-    const title = el.querySelector('.title').textContent.toLowerCase();
+    const title = el.querySelector('span').textContent.toLowerCase();
     el.style.display = title.includes(q) ? '' : 'none';
+  });
+  // Show/hide empty categories
+  document.querySelectorAll('.cat-group').forEach(group => {
+    const visible = group.querySelectorAll('.article-item:not([style*="display: none"])');
+    group.style.display = visible.length ? '' : 'none';
   });
 }
 
-// Handle back/forward
 window.addEventListener('hashchange', () => {
   const hash = window.location.hash.slice(1);
   if (!hash) { goBack(); return; }
-  const idx = articles.findIndex(a => a[1] === decodeURIComponent(hash));
-  if (idx >= 0) openArticle(idx);
+  const decoded = decodeURIComponent(hash);
+  const art = allArticles.find(a => a.file === decoded);
+  if (art) openArticle(decoded, art.title);
 });
 
 init();
