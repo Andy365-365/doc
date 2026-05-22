@@ -42,18 +42,19 @@ body{background:#0d1117;color:#c9d1d9;font-family:-apple-system,BlinkMacSystemFo
 .article-item.active{background:#161b22;color:#58a6ff;border-left:3px solid #58a6ff;padding-left:29px}
 .article-item .ver{color:#484f58;font-size:0.7rem;margin-left:auto;flex-shrink:0}
 
-/* Main content - unified reader */
+/* Main content */
 .main{flex:1;overflow:hidden;display:flex;flex-direction:column}
 .welcome{display:flex;align-items:center;justify-content:center;flex:1;color:#484f58;font-size:1.1rem;flex-direction:column;gap:12px}
 .welcome .icon{font-size:3rem;opacity:0.5}
-
-/* Loading */
 .loading{display:none;align-items:center;justify-content:center;flex:1;color:#8b949e;font-size:0.9rem;flex-direction:column;gap:12px}
 .spinner{width:32px;height:32px;border:3px solid #21262d;border-top-color:#58a6ff;border-radius:50%;animation:spin 0.8s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 
-/* Reader container - unified styles */
-.reader{display:none;flex:1;overflow-y:auto;padding:32px 48px;max-width:900px;margin:0 auto;width:100%}
+/* Reader container */
+.reader{display:none;flex:1;overflow-y:auto;padding:0;position:relative}
+.reader-inner{max-width:960px;margin:0 auto;padding:24px 32px 48px}
+
+/* Reader base styles - article styles override these */
 .reader h1{color:#e6edf3;font-size:1.8rem;margin:24px 0 16px;padding-bottom:12px;border-bottom:1px solid #21262d;line-height:1.3}
 .reader h2{color:#e6edf3;font-size:1.4rem;margin:28px 0 12px;padding-bottom:8px;border-bottom:1px solid #21262d;line-height:1.3}
 .reader h3{color:#e6edf3;font-size:1.15rem;margin:24px 0 10px}
@@ -76,17 +77,18 @@ body{background:#0d1117;color:#c9d1d9;font-family:-apple-system,BlinkMacSystemFo
 .reader pre code{background:none;padding:0;color:#c9d1d9;font-size:0.85rem}
 .reader img{max-width:100%;height:auto;border-radius:8px;margin:16px 0;box-shadow:0 2px 12px rgba(0,0,0,0.4)}
 .reader hr{border:none;border-top:1px solid #21262d;margin:24px 0}
-.reader .toc-nav,.reader #toc-wrapper,.reader #toc-toggle,.reader nav{display:none!important}
+
+/* Remove the nav link we added to articles */
+.reader > nav{display:none!important}
 
 /* Scrollbar */
 .article-list::-webkit-scrollbar,.reader::-webkit-scrollbar{width:6px}
 .article-list::-webkit-scrollbar-track,.reader::-webkit-scrollbar-track{background:transparent}
 .article-list::-webkit-scrollbar-thumb,.reader::-webkit-scrollbar-thumb{background:#30363d;border-radius:3px}
 
-/* Responsive */
 @media(max-width:768px){
   .sidebar{width:280px;min-width:280px}
-  .reader{padding:20px 24px}
+  .reader-inner{padding:16px 20px}
 }
 </style>
 </head>
@@ -111,7 +113,7 @@ body{background:#0d1117;color:#c9d1d9;font-family:-apple-system,BlinkMacSystemFo
   <div class="main" id="mainContent">
     <div class="welcome" id="welcome"><div class="icon">&#128214;</div><span>从左侧选择一篇文章</span></div>
     <div class="loading" id="loading"><div class="spinner"></div><span>加载中...</span></div>
-    <div class="reader" id="reader"></div>
+    <div class="reader" id="reader"><div class="reader-inner" id="readerInner"></div></div>
   </div>
 </div>
 
@@ -121,7 +123,6 @@ const categories = {"vLLM / 推理加速": [["Claude Code + 本地 LLM 的 KV Ca
 let allArticles = [];
 let currentArticle = null;
 
-// Flatten articles with category info
 for (const [cat, articles] of Object.entries(categories)) {
   articles.forEach(a => {
     allArticles.push({title: a[0], file: a[1], ver: a[2], cat: cat});
@@ -163,7 +164,6 @@ function init() {
     list.appendChild(group);
   }
 
-  // Check URL hash
   const hash = window.location.hash.slice(1);
   if (hash) {
     const decoded = decodeURIComponent(hash);
@@ -175,16 +175,12 @@ async function openArticle(file, title) {
   currentArticle = file;
   window.location.hash = encodeURIComponent(file);
 
-  // Highlight
   document.querySelectorAll('.article-item').forEach(el => {
     el.classList.toggle('active', el.dataset.file === file);
   });
 
-  // Header
   document.getElementById('headerTitle').textContent = title;
   document.getElementById('backBtn').style.display = 'block';
-
-  // Show loading
   document.getElementById('welcome').style.display = 'none';
   document.getElementById('reader').style.display = 'none';
   document.getElementById('loading').style.display = 'flex';
@@ -194,22 +190,41 @@ async function openArticle(file, title) {
     const text = await resp.text();
     const doc = new DOMParser().parseFromString(text, 'text/html');
 
-    // Extract body content
+    // Extract article styles from <head> <style> tags
+    const articleStyles = [];
+    doc.querySelectorAll('head style').forEach(s => articleStyles.push(s.textContent));
+
+    // Get body content
     const body = doc.body;
 
-    // Remove scripts, styles, TOC, nav elements
-    body.querySelectorAll('script, style, nav, #toc-wrapper, #toc-toggle, .toc-nav').forEach(el => el.remove());
+    // Remove only: <script> tags and our added nav links
+    body.querySelectorAll('script').forEach(el => el.remove());
+    // Remove the nav bar we added (the "返回列表" link)
+    body.querySelectorAll('nav').forEach(el => {
+      if (el.querySelector('a[href="index.html"]')) el.remove();
+    });
 
-    // Remove inline nav links we added earlier
-    body.querySelectorAll('a[href="index.html"]').forEach(el => el.parentElement?.remove() || el.remove());
+    const readerInner = document.getElementById('readerInner');
+    readerInner.innerHTML = body.innerHTML;
 
-    const reader = document.getElementById('reader');
-    reader.innerHTML = body.innerHTML;
+    // Inject article styles into reader
+    // Remove old injected styles
+    document.querySelectorAll('#injectedArticleStyle').forEach(el => el.remove());
+    if (articleStyles.length > 0) {
+      const styleEl = document.createElement('style');
+      styleEl.id = 'injectedArticleStyle';
+      // Process article styles: remove body/html/global resets that conflict
+      let processed = articleStyles.join('\n')
+        .replace(/body\s*\{[^}]*\}/g, '')
+        .replace(/html\s*\{[^}]*\}/g, '')
+        .replace(/@import[^;]+;/g, '');
+      styleEl.textContent = processed;
+      document.head.appendChild(styleEl);
+    }
 
-    // Hide loading, show reader
     document.getElementById('loading').style.display = 'none';
-    reader.style.display = 'block';
-    reader.scrollTop = 0;
+    document.getElementById('reader').style.display = 'block';
+    document.getElementById('reader').scrollTop = 0;
 
   } catch (e) {
     document.getElementById('loading').style.display = 'none';
@@ -228,6 +243,8 @@ function goBack() {
   document.getElementById('loading').style.display = 'none';
   document.getElementById('welcome').style.display = 'flex';
   document.getElementById('welcome').innerHTML = '<div class="icon">&#128214;</div><span>从左侧选择一篇文章</span>';
+  // Remove injected styles
+  document.querySelectorAll('#injectedArticleStyle').forEach(el => el.remove());
 }
 
 function filterArticles() {
@@ -236,7 +253,6 @@ function filterArticles() {
     const title = el.querySelector('span').textContent.toLowerCase();
     el.style.display = title.includes(q) ? '' : 'none';
   });
-  // Show/hide empty categories
   document.querySelectorAll('.cat-group').forEach(group => {
     const visible = group.querySelectorAll('.article-item:not([style*="display: none"])');
     group.style.display = visible.length ? '' : 'none';
