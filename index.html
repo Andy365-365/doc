@@ -6,54 +6,138 @@
 <title>技术文档翻译合集</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-body{background:#0d1117;color:#c9d1d9;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;padding:2rem;max-width:900px;margin:0 auto}
-h1{color:#58a6ff;font-size:1.8rem;margin-bottom:0.5rem}
-.subtitle{color:#8b949e;margin-bottom:2rem;font-size:0.9rem}
-table{width:100%;border-collapse:collapse}
-th{text-align:left;padding:12px 16px;border-bottom:2px solid #30363d;color:#8b949e;font-size:0.8rem;text-transform:uppercase;letter-spacing:0.05em}
-td{padding:12px 16px;border-bottom:1px solid #21262d}
-tr:hover{background:#161b22}
-a{color:#58a6ff;text-decoration:none}
-a:hover{color:#79c0ff;text-decoration:underline}
-.ver{color:#8b949e;font-size:0.8rem}
-.count{color:#8b949e;font-size:0.85rem;margin-top:1.5rem}
+body{background:#0d1117;color:#c9d1d9;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;height:100vh;display:flex;flex-direction:column;overflow:hidden}
+
+/* Header */
+.header{display:flex;align-items:center;gap:12px;padding:8px 16px;background:#161b22;border-bottom:1px solid #30363d;flex-shrink:0}
+.header h1{font-size:1rem;color:#58a6ff;white-space:nowrap}
+.back-btn{display:none;padding:4px 12px;background:#21262d;color:#58a6ff;border:1px solid #30363d;border-radius:6px;cursor:pointer;font-size:0.85rem;white-space:nowrap}
+.back-btn:hover{background:#30363d}
+
+/* Layout */
+.container{display:flex;flex:1;overflow:hidden}
+
+/* Sidebar */
+.sidebar{width:320px;min-width:320px;border-right:1px solid #21262d;display:flex;flex-direction:column;background:#0d1117;overflow:hidden}
+.sidebar-header{padding:12px 16px;border-bottom:1px solid #21262d}
+.sidebar-header .count{color:#8b949e;font-size:0.8rem}
+.search-box{padding:8px 12px;border-bottom:1px solid #21262d}
+.search-box input{width:100%;padding:6px 10px;background:#0d1117;border:1px solid #30363d;border-radius:6px;color:#c9d1d9;font-size:0.85rem;outline:none}
+.search-box input:focus{border-color:#58a6ff}
+.article-list{flex:1;overflow-y:auto}
+.article-item{display:flex;align-items:center;padding:10px 16px;cursor:pointer;border-bottom:1px solid #21262d;transition:background 0.15s}
+.article-item:hover{background:#161b22}
+.article-item.active{background:#161b22;border-left:3px solid #58a6ff}
+.article-item .title{flex:1;font-size:0.85rem;line-height:1.3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.article-item .ver{color:#8b949e;font-size:0.75rem;margin-left:8px;flex-shrink:0}
+
+/* Main content */
+.main{flex:1;display:flex;align-direction:column;overflow:hidden}
+.welcome{display:flex;align-items:center;justify-content:center;flex:1;color:#8b949e;font-size:1rem}
+iframe{flex:1;border:none;background:#fff;width:100%;height:100%}
+
+/* Scrollbar */
+.article-list::-webkit-scrollbar{width:6px}
+.article-list::-webkit-scrollbar-track{background:#0d1117}
+.article-list::-webkit-scrollbar-thumb{background:#30363d;border-radius:3px}
+
+/* Responsive */
+@media(max-width:768px){
+  .sidebar{width:260px;min-width:260px}
+}
 </style>
 </head>
 <body>
-<h1>技术文档翻译合集</h1>
-<p class="subtitle">AI / LLM / vLLM 相关技术文档翻译</p>
-<table>
-<thead><tr><th>文章标题</th><th>版本</th></tr></thead>
-<tbody>
-<tr><td><a href="AI 智能体记忆系统现状深度调研_v6.21.html">AI 智能体记忆系统现状深度调研</a></td><td class="ver">6.21</td></tr>
-<tr><td><a href="Claude Code + 本地 LLM 的 KV Cache 复用失效问题排查全记录_v1.4.html">Claude Code + 本地 LLM 的 KV Cache 复用失效问题排查全记录</a></td><td class="ver">1.4</td></tr>
-<tr><td><a href="Harness工程初探_v6.21.html">Harness工程初探</a></td><td class="ver">6.21</td></tr>
-<tr><td><a href="Hermes 7 步封神操作：Token 省 80_+ 长期记忆优化，效率直接炸裂_v1.3.html">Hermes 7 步封神操作：Token 省 80_+ 长期记忆优化，效率直接炸裂</a></td><td class="ver">1.3</td></tr>
-<tr><td><a href="Hermes Agent 研究_v6.21.html">Hermes Agent 研究</a></td><td class="ver">6.21</td></tr>
-<tr><td><a href="Hermes Agent爆火，聊聊与OpenClaw 到底区别在哪_v1.0.html">Hermes Agent爆火，聊聊与OpenClaw 到底区别在哪</a></td><td class="ver">1.0</td></tr>
-<tr><td><a href="OpenClaw 深度解构_v6.21.html">OpenClaw 深度解构</a></td><td class="ver">6.21</td></tr>
-<tr><td><a href="OpenClaw深度分析_v6.21.html">OpenClaw深度分析</a></td><td class="ver">6.21</td></tr>
-<tr><td><a href="OpenClaw生态Skill调研_v1.3.html">OpenClaw生态Skill调研</a></td><td class="ver">1.3</td></tr>
-<tr><td><a href="llamacpp-checkpoint-fix-speeds-local-coding-agents-v019.html">llamacpp-checkpoint-fix-speeds-local-coding-agents-v019</a></td><td class="ver"></td></tr>
-<tr><td><a href="lucebox-hub-readme-翻译.html">lucebox-hub-readme-翻译</a></td><td class="ver"></td></tr>
-<tr><td><a href="lucebox-hub-完整翻译.html">lucebox-hub-完整翻译</a></td><td class="ver"></td></tr>
-<tr><td><a href="qwen36-27b-dual-rtx-3090-vllm-v019.html">qwen36-27b-dual-rtx-3090-vllm-v019</a></td><td class="ver"></td></tr>
-<tr><td><a href="running-qwen36-27b-dual-rtx-3090-vllm-v019.html">running-qwen36-27b-dual-rtx-3090-vllm-v019</a></td><td class="ver"></td></tr>
-<tr><td><a href="一文全面探究Harness Engineering_v6.21.html">一文全面探究Harness Engineering</a></td><td class="ver">6.21</td></tr>
-<tr><td><a href="从 305 GB 到 7.4 GB：大模型 KVCache 架构演进全景_v1.0.html">从 305 GB 到 7.4 GB：大模型 KVCache 架构演进全景</a></td><td class="ver">1.0</td></tr>
-<tr><td><a href="从30到60 Tokens每秒-如何在双RTX 3090上运行vLLM_v2.html">从30到60 Tokens每秒-如何在双RTX 3090上运行vLLM</a></td><td class="ver">2</td></tr>
-<tr><td><a href="使用 llama.cpp + MTP 分支实现 1.5 倍 Token 输出加速实战指南_v1.2.html">使用 llama.cpp + MTP 分支实现 1.5 倍 Token 输出加速实战指南</a></td><td class="ver">1.2</td></tr>
-<tr><td><a href="大模型RAG实战，从被骂不靠谱到成为部门MVP，这是我的踩坑全记录_v1.0.html">大模型RAG实战，从被骂不靠谱到成为部门MVP，这是我的踩坑全记录</a></td><td class="ver">1.0</td></tr>
-<tr><td><a href="大模型RAG实战，从被骂不靠谱到成为部门MVP，这是我的踩坑全记录_v1.1 (1).html">大模型RAG实战，从被骂不靠谱到成为部门MVP，这是我的踩坑全记录</a></td><td class="ver">1.1 (1)</td></tr>
-<tr><td><a href="大模型RAG实战，从被骂不靠谱到成为部门MVP，这是我的踩坑全记录_v1.1 (2).html">大模型RAG实战，从被骂不靠谱到成为部门MVP，这是我的踩坑全记录</a></td><td class="ver">1.1 (2)</td></tr>
-<tr><td><a href="大模型RAG实战，从被骂不靠谱到成为部门MVP，这是我的踩坑全记录_v1.1.html">大模型RAG实战，从被骂不靠谱到成为部门MVP，这是我的踩坑全记录</a></td><td class="ver">1.1</td></tr>
-<tr><td><a href="大模型垂直领域微调系列（一）：认识微调_v1.7.html">大模型垂直领域微调系列（一）：认识微调</a></td><td class="ver">1.7</td></tr>
-<tr><td><a href="大模型垂直领域微调系列（三）：完整实战与最佳实践_v1.7.html">大模型垂直领域微调系列（三）：完整实战与最佳实践</a></td><td class="ver">1.7</td></tr>
-<tr><td><a href="大模型垂直领域微调系列（二）：ms-swift 框架全景_v1.7.html">大模型垂直领域微调系列（二）：ms-swift 框架全景</a></td><td class="ver">1.7</td></tr>
-<tr><td><a href="如何编写高质量的agent skill？_v6.21.html">如何编写高质量的agent skill？</a></td><td class="ver">6.21</td></tr>
-<tr><td><a href="通过示例理解琳瑯满目的基准测试_v6.21.html">通过示例理解琳瑯满目的基准测试</a></td><td class="ver">6.21</td></tr>
-</tbody>
-</table>
-<p class="count">共 27 篇文章</p>
+
+<div class="header">
+  <h1>技术文档翻译合集</h1>
+  <button class="back-btn" onclick="goBack()">&#8592; 返回列表</button>
+</div>
+
+<div class="container">
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <span class="count">共 27 篇文章</span>
+    </div>
+    <div class="search-box">
+      <input type="text" id="search" placeholder="搜索文章..." oninput="filterArticles()">
+    </div>
+    <div class="article-list" id="articleList"></div>
+  </div>
+  <div class="main" id="mainContent">
+    <div class="welcome">从左侧选择一篇文章</div>
+  </div>
+</div>
+
+<script>
+const articles = [["AI \u667a\u80fd\u4f53\u8bb0\u5fc6\u7cfb\u7edf\u73b0\u72b6\u6df1\u5ea6\u8c03\u7814", "AI \u667a\u80fd\u4f53\u8bb0\u5fc6\u7cfb\u7edf\u73b0\u72b6\u6df1\u5ea6\u8c03\u7814_v6.21.html", "6.21"], ["Claude Code + \u672c\u5730 LLM \u7684 KV Cache \u590d\u7528\u5931\u6548\u95ee\u9898\u6392\u67e5\u5168\u8bb0\u5f55", "Claude Code + \u672c\u5730 LLM \u7684 KV Cache \u590d\u7528\u5931\u6548\u95ee\u9898\u6392\u67e5\u5168\u8bb0\u5f55_v1.4.html", "1.4"], ["Harness\u5de5\u7a0b\u521d\u63a2", "Harness\u5de5\u7a0b\u521d\u63a2_v6.21.html", "6.21"], ["Hermes 7 \u6b65\u5c01\u795e\u64cd\u4f5c\uff1aToken \u7701 80_+ \u957f\u671f\u8bb0\u5fc6\u4f18\u5316\uff0c\u6548\u7387\u76f4\u63a5\u70b8\u88c2", "Hermes 7 \u6b65\u5c01\u795e\u64cd\u4f5c\uff1aToken \u7701 80_+ \u957f\u671f\u8bb0\u5fc6\u4f18\u5316\uff0c\u6548\u7387\u76f4\u63a5\u70b8\u88c2_v1.3.html", "1.3"], ["Hermes Agent \u7814\u7a76", "Hermes Agent \u7814\u7a76_v6.21.html", "6.21"], ["Hermes Agent\u7206\u706b\uff0c\u804a\u804a\u4e0eOpenClaw \u5230\u5e95\u533a\u522b\u5728\u54ea", "Hermes Agent\u7206\u706b\uff0c\u804a\u804a\u4e0eOpenClaw \u5230\u5e95\u533a\u522b\u5728\u54ea_v1.0.html", "1.0"], ["OpenClaw \u6df1\u5ea6\u89e3\u6784", "OpenClaw \u6df1\u5ea6\u89e3\u6784_v6.21.html", "6.21"], ["OpenClaw\u6df1\u5ea6\u5206\u6790", "OpenClaw\u6df1\u5ea6\u5206\u6790_v6.21.html", "6.21"], ["OpenClaw\u751f\u6001Skill\u8c03\u7814", "OpenClaw\u751f\u6001Skill\u8c03\u7814_v1.3.html", "1.3"], ["llamacpp-checkpoint-fix-speeds-local-coding-agents-v019", "llamacpp-checkpoint-fix-speeds-local-coding-agents-v019.html", ""], ["lucebox-hub-readme-\u7ffb\u8bd1", "lucebox-hub-readme-\u7ffb\u8bd1.html", ""], ["lucebox-hub-\u5b8c\u6574\u7ffb\u8bd1", "lucebox-hub-\u5b8c\u6574\u7ffb\u8bd1.html", ""], ["qwen36-27b-dual-rtx-3090-vllm-v019", "qwen36-27b-dual-rtx-3090-vllm-v019.html", ""], ["running-qwen36-27b-dual-rtx-3090-vllm-v019", "running-qwen36-27b-dual-rtx-3090-vllm-v019.html", ""], ["\u4e00\u6587\u5168\u9762\u63a2\u7a76Harness Engineering", "\u4e00\u6587\u5168\u9762\u63a2\u7a76Harness Engineering_v6.21.html", "6.21"], ["\u4ece 305 GB \u5230 7.4 GB\uff1a\u5927\u6a21\u578b KVCache \u67b6\u6784\u6f14\u8fdb\u5168\u666f", "\u4ece 305 GB \u5230 7.4 GB\uff1a\u5927\u6a21\u578b KVCache \u67b6\u6784\u6f14\u8fdb\u5168\u666f_v1.0.html", "1.0"], ["\u4ece30\u523060 Tokens\u6bcf\u79d2-\u5982\u4f55\u5728\u53ccRTX 3090\u4e0a\u8fd0\u884cvLLM", "\u4ece30\u523060 Tokens\u6bcf\u79d2-\u5982\u4f55\u5728\u53ccRTX 3090\u4e0a\u8fd0\u884cvLLM_v2.html", "2"], ["\u4f7f\u7528 llama.cpp + MTP \u5206\u652f\u5b9e\u73b0 1.5 \u500d Token \u8f93\u51fa\u52a0\u901f\u5b9e\u6218\u6307\u5357", "\u4f7f\u7528 llama.cpp + MTP \u5206\u652f\u5b9e\u73b0 1.5 \u500d Token \u8f93\u51fa\u52a0\u901f\u5b9e\u6218\u6307\u5357_v1.2.html", "1.2"], ["\u5927\u6a21\u578bRAG\u5b9e\u6218\uff0c\u4ece\u88ab\u9a82\u4e0d\u9760\u8c31\u5230\u6210\u4e3a\u90e8\u95e8MVP\uff0c\u8fd9\u662f\u6211\u7684\u8e29\u5751\u5168\u8bb0\u5f55", "\u5927\u6a21\u578bRAG\u5b9e\u6218\uff0c\u4ece\u88ab\u9a82\u4e0d\u9760\u8c31\u5230\u6210\u4e3a\u90e8\u95e8MVP\uff0c\u8fd9\u662f\u6211\u7684\u8e29\u5751\u5168\u8bb0\u5f55_v1.0.html", "1.0"], ["\u5927\u6a21\u578bRAG\u5b9e\u6218\uff0c\u4ece\u88ab\u9a82\u4e0d\u9760\u8c31\u5230\u6210\u4e3a\u90e8\u95e8MVP\uff0c\u8fd9\u662f\u6211\u7684\u8e29\u5751\u5168\u8bb0\u5f55", "\u5927\u6a21\u578bRAG\u5b9e\u6218\uff0c\u4ece\u88ab\u9a82\u4e0d\u9760\u8c31\u5230\u6210\u4e3a\u90e8\u95e8MVP\uff0c\u8fd9\u662f\u6211\u7684\u8e29\u5751\u5168\u8bb0\u5f55_v1.1 (1).html", "1.1 (1)"], ["\u5927\u6a21\u578bRAG\u5b9e\u6218\uff0c\u4ece\u88ab\u9a82\u4e0d\u9760\u8c31\u5230\u6210\u4e3a\u90e8\u95e8MVP\uff0c\u8fd9\u662f\u6211\u7684\u8e29\u5751\u5168\u8bb0\u5f55", "\u5927\u6a21\u578bRAG\u5b9e\u6218\uff0c\u4ece\u88ab\u9a82\u4e0d\u9760\u8c31\u5230\u6210\u4e3a\u90e8\u95e8MVP\uff0c\u8fd9\u662f\u6211\u7684\u8e29\u5751\u5168\u8bb0\u5f55_v1.1 (2).html", "1.1 (2)"], ["\u5927\u6a21\u578bRAG\u5b9e\u6218\uff0c\u4ece\u88ab\u9a82\u4e0d\u9760\u8c31\u5230\u6210\u4e3a\u90e8\u95e8MVP\uff0c\u8fd9\u662f\u6211\u7684\u8e29\u5751\u5168\u8bb0\u5f55", "\u5927\u6a21\u578bRAG\u5b9e\u6218\uff0c\u4ece\u88ab\u9a82\u4e0d\u9760\u8c31\u5230\u6210\u4e3a\u90e8\u95e8MVP\uff0c\u8fd9\u662f\u6211\u7684\u8e29\u5751\u5168\u8bb0\u5f55_v1.1.html", "1.1"], ["\u5927\u6a21\u578b\u5782\u76f4\u9886\u57df\u5fae\u8c03\u7cfb\u5217\uff08\u4e00\uff09\uff1a\u8ba4\u8bc6\u5fae\u8c03", "\u5927\u6a21\u578b\u5782\u76f4\u9886\u57df\u5fae\u8c03\u7cfb\u5217\uff08\u4e00\uff09\uff1a\u8ba4\u8bc6\u5fae\u8c03_v1.7.html", "1.7"], ["\u5927\u6a21\u578b\u5782\u76f4\u9886\u57df\u5fae\u8c03\u7cfb\u5217\uff08\u4e09\uff09\uff1a\u5b8c\u6574\u5b9e\u6218\u4e0e\u6700\u4f73\u5b9e\u8df5", "\u5927\u6a21\u578b\u5782\u76f4\u9886\u57df\u5fae\u8c03\u7cfb\u5217\uff08\u4e09\uff09\uff1a\u5b8c\u6574\u5b9e\u6218\u4e0e\u6700\u4f73\u5b9e\u8df5_v1.7.html", "1.7"], ["\u5927\u6a21\u578b\u5782\u76f4\u9886\u57df\u5fae\u8c03\u7cfb\u5217\uff08\u4e8c\uff09\uff1ams-swift \u6846\u67b6\u5168\u666f", "\u5927\u6a21\u578b\u5782\u76f4\u9886\u57df\u5fae\u8c03\u7cfb\u5217\uff08\u4e8c\uff09\uff1ams-swift \u6846\u67b6\u5168\u666f_v1.7.html", "1.7"], ["\u5982\u4f55\u7f16\u5199\u9ad8\u8d28\u91cf\u7684agent skill\uff1f", "\u5982\u4f55\u7f16\u5199\u9ad8\u8d28\u91cf\u7684agent skill\uff1f_v6.21.html", "6.21"], ["\u901a\u8fc7\u793a\u4f8b\u7406\u89e3\u7433\u746f\u6ee1\u76ee\u7684\u57fa\u51c6\u6d4b\u8bd5", "\u901a\u8fc7\u793a\u4f8b\u7406\u89e3\u7433\u746f\u6ee1\u76ee\u7684\u57fa\u51c6\u6d4b\u8bd5_v6.21.html", "6.21"]];
+
+let currentArticle = null;
+
+function init() {
+  const list = document.getElementById('articleList');
+  articles.forEach((a, i) => {
+    const div = document.createElement('div');
+    div.className = 'article-item';
+    div.dataset.index = i;
+    div.innerHTML = '<span class="title">' + a[0] + '</span>' + (a[2] ? '<span class="ver">' + a[2] + '</span>' : '');
+    div.onclick = () => openArticle(i);
+    list.appendChild(div);
+  });
+
+  // Check URL hash
+  const hash = window.location.hash.slice(1);
+  if (hash) {
+    const idx = articles.findIndex(a => a[1] === decodeURIComponent(hash));
+    if (idx >= 0) openArticle(idx);
+  }
+}
+
+function openArticle(idx) {
+  const a = articles[idx];
+  currentArticle = idx;
+
+  // Update URL
+  window.location.hash = encodeURIComponent(a[1]);
+
+  // Highlight active
+  document.querySelectorAll('.article-item').forEach((el, i) => {
+    el.classList.toggle('active', i === idx);
+  });
+
+  // Show iframe
+  const main = document.getElementById('mainContent');
+  main.innerHTML = '<iframe src="' + a[1] + '" sandbox="allow-same-origin allow-scripts"></iframe>';
+
+  // Show back button
+  document.querySelector('.back-btn').style.display = 'block';
+}
+
+function goBack() {
+  currentArticle = null;
+  window.location.hash = '';
+  document.querySelectorAll('.article-item').forEach(el => el.classList.remove('active'));
+  document.getElementById('mainContent').innerHTML = '<div class="welcome">从左侧选择一篇文章</div>';
+  document.querySelector('.back-btn').style.display = 'none';
+}
+
+function filterArticles() {
+  const q = document.getElementById('search').value.toLowerCase();
+  document.querySelectorAll('.article-item').forEach(el => {
+    const title = el.querySelector('.title').textContent.toLowerCase();
+    el.style.display = title.includes(q) ? '' : 'none';
+  });
+}
+
+// Handle back/forward
+window.addEventListener('hashchange', () => {
+  const hash = window.location.hash.slice(1);
+  if (!hash) { goBack(); return; }
+  const idx = articles.findIndex(a => a[1] === decodeURIComponent(hash));
+  if (idx >= 0) openArticle(idx);
+});
+
+init();
+</script>
 </body>
 </html>
