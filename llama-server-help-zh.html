@@ -556,12 +556,12 @@ built with GNU 13.3.0 for Linux x86_64</div>
 <td><span class="param-env">LLAMA_ARG_FLASH_ATTN</span></td>
 </tr>
 <tr>
-<td class="param-name">--perf, , no-perf</td>
+<td class="param-name">--perf, --no-perf</td>
 <td class="param-desc">是否启用 libllama 内部性能计时<br><span class="param-default">默认：false</span></td>
 <td><span class="param-env">LLAMA_ARG_PERF</span></td>
 </tr>
 <tr>
-<td class="param-name">-e, --escape, , no-escape</td>
+<td class="param-name">-e, --escape, --no-escape</td>
 <td class="param-desc">是否处理转义序列（\n, \r, \t, \', \", \\）<br><span class="param-default">默认：true（启用）</span></td>
 <td>—</td>
 </tr>
@@ -631,12 +631,12 @@ built with GNU 13.3.0 for Linux x86_64</div>
 <thead><tr><th>参数</th><th>描述</th><th>环境变量</th></tr></thead>
 <tbody>
 <tr>
-<td class="param-name">-kvo, --kv-offload, -nkvo, , no-kv-offload</td>
+<td class="param-name">-kvo, --kv-offload, -nkvo, --no-kv-offload</td>
 <td class="param-desc">是否启用 KV 缓存卸载<br><span class="param-default">默认：启用</span></td>
 <td><span class="param-env">LLAMA_ARG_KV_OFFLOAD</span></td>
 </tr>
 <tr>
-<td class="param-name">--repack, -nr, , no-repack</td>
+<td class="param-name">--repack, -nr, --no-repack</td>
 <td class="param-desc">是否启用权重重新打包（weight repacking）<br><span class="param-default">默认：启用</span></td>
 <td><span class="param-env">LLAMA_ARG_REPACK</span></td>
 </tr>
@@ -676,12 +676,12 @@ built with GNU 13.3.0 for Linux x86_64</div>
 <td><span class="param-env">LLAMA_ARG_MLOCK</span></td>
 </tr>
 <tr>
-<td class="param-name">--mmap, , no-mmap</td>
+<td class="param-name">--mmap, --no-mmap</td>
 <td class="param-desc">是否对模型使用内存映射（memory-map）。如果禁用 mmap，加载速度较慢，但如果不使用 mlock，可能会减少页面换出<br><span class="param-default">默认：启用</span></td>
 <td><span class="param-env">LLAMA_ARG_MMAP</span></td>
 </tr>
 <tr>
-<td class="param-name">-dio, --direct-io, -ndio, , no-direct-io</td>
+<td class="param-name">-dio, --direct-io, -ndio, --no-direct-io</td>
 <td class="param-desc">如果可用则使用 DirectIO<br><span class="param-default">默认：禁用</span></td>
 <td><span class="param-env">LLAMA_ARG_DIO</span></td>
 </tr>
@@ -789,7 +789,7 @@ built with GNU 13.3.0 for Linux x86_64</div>
 <td>—</td>
 </tr>
 <tr>
-<td class="param-name">--op-offload, , no-op-offload</td>
+<td class="param-name">--op-offload, --no-op-offload</td>
 <td class="param-desc">是否将主机张量操作卸载到设备<br><span class="param-default">默认：true（启用）</span></td>
 <td>—</td>
 </tr>
@@ -894,7 +894,7 @@ built with GNU 13.3.0 for Linux x86_64</div>
 <td><span class="param-env">LLAMA_LOG_COLORS</span></td>
 </tr>
 <tr>
-<td class="param-name">-v, --verbose, , log-verbose</td>
+<td class="param-name">-v, --verbose, --log-verbose</td>
 <td class="param-desc">将详细程度级别设置为无穷大（即记录所有消息，适用于调试）</td>
 <td>—</td>
 </tr>
@@ -911,12 +911,12 @@ built with GNU 13.3.0 for Linux x86_64</div>
 <td><span class="param-env">LLAMA_LOG_VERBOSITY</span></td>
 </tr>
 <tr>
-<td class="param-name">--log-prefix, , no-log-prefix</td>
+<td class="param-name">--log-prefix, --no-log-prefix</td>
 <td class="param-desc">是否在日志消息中启用前缀</td>
 <td><span class="param-env">LLAMA_ARG_LOG_PREFIX</span></td>
 </tr>
 <tr>
-<td class="param-name">--log-timestamps, , no-log-timestamps</td>
+<td class="param-name">--log-timestamps, --no-log-timestamps</td>
 <td class="param-desc">是否在日志消息中启用时间戳</td>
 <td><span class="param-env">LLAMA_ARG_LOG_TIMESTAMPS</span></td>
 </tr>
@@ -1213,12 +1213,12 @@ built with GNU 13.3.0 for Linux x86_64</div>
 <td>—</td>
 </tr>
 <tr>
-<td class="param-name">--spec-draft-override-tensor, -otd, , override-tensor-draft</td>
+<td class="param-name">--spec-draft-override-tensor, -otd, --override-tensor-draft</td>
 <td class="param-desc">覆盖草稿模型的张量缓冲区类型</td>
 <td>—</td>
 </tr>
 <tr>
-<td class="param-name">--spec-draft-cpu-moe, -cmoed, , cpu-moe-draft</td>
+<td class="param-name">--spec-draft-cpu-moe, -cmoed, --cpu-moe-draft</td>
 <td class="param-desc">将草稿模型的所有 MoE 权重保留在 CPU 上</td>
 <td><span class="param-env">LLAMA_ARG_SPEC_DRAFT_CPU_MOE</span></td>
 </tr>
@@ -1248,7 +1248,7 @@ built with GNU 13.3.0 for Linux x86_64</div>
 <td><span class="param-env">LLAMA_ARG_SPEC_DRAFT_P_MIN</span></td>
 </tr>
 <tr>
-<td class="param-name">--spec-draft-backend-sampling, , no-spec-draft-backend-sampling</td>
+<td class="param-name">--spec-draft-backend-sampling, --no-spec-draft-backend-sampling</td>
 <td class="param-desc">将草稿采样卸载到后端<br><span class="param-default">默认：启用</span></td>
 <td><span class="param-env">LLAMA_ARG_SPEC_DRAFT_BACKEND_SAMPLING</span></td>
 </tr>
@@ -1424,12 +1424,12 @@ built with GNU 13.3.0 for Linux x86_64</div>
 <td><span class="param-env">LLAMA_ARG_CACHE_RAM</span></td>
 </tr>
 <tr>
-<td class="param-name">-kvu, --kv-unified, -no-kvu, , no-kv-unified</td>
+<td class="param-name">-kvu, --kv-unified, -no-kvu, --no-kv-unified</td>
 <td class="param-desc">使用所有序列共享的单一统一 KV 缓冲区<br><span class="param-default">默认：当槽数量为 auto 时启用</span></td>
 <td><span class="param-env">LLAMA_ARG_KV_UNIFIED</span></td>
 </tr>
 <tr>
-<td class="param-name">--cache-idle-slots, , no-cache-idle-slots</td>
+<td class="param-name">--cache-idle-slots, --no-cache-idle-slots</td>
 <td class="param-desc">在新任务时保存并清除空闲槽<br><span class="param-default">默认：启用（需要 unified KV 和 cache-ram）</span></td>
 <td><span class="param-env">LLAMA_ARG_CACHE_IDLE_SLOTS</span></td>
 </tr>
@@ -1444,7 +1444,7 @@ built with GNU 13.3.0 for Linux x86_64</div>
 <thead><tr><th>参数</th><th>描述</th><th>环境变量</th></tr></thead>
 <tbody>
 <tr>
-<td class="param-name">--context-shift, , no-context-shift</td>
+<td class="param-name">--context-shift, --no-context-shift</td>
 <td class="param-desc">在无限文本生成中是否使用上下文偏移（context shift）<br><span class="param-default">默认：禁用</span></td>
 <td><span class="param-env">LLAMA_ARG_CONTEXT_SHIFT</span></td>
 </tr>
@@ -1459,7 +1459,7 @@ built with GNU 13.3.0 for Linux x86_64</div>
 <td>—</td>
 </tr>
 <tr>
-<td class="param-name">--warmup, , no-warmup</td>
+<td class="param-name">--warmup, --no-warmup</td>
 <td class="param-desc">是否执行空运行预热<br><span class="param-default">默认：启用</span></td>
 <td>—</td>
 </tr>
@@ -1479,7 +1479,7 @@ built with GNU 13.3.0 for Linux x86_64</div>
 <td><span class="param-env">LLAMA_ARG_N_PARALLEL</span></td>
 </tr>
 <tr>
-<td class="param-name">-cb, --cont-batching, -nocb, , no-cont-batching</td>
+<td class="param-name">-cb, --cont-batching, -nocb, --no-cont-batching</td>
 <td class="param-desc">是否启用连续批处理（continuous batching，又称动态批处理 / dynamic batching）<br><span class="param-default">默认：启用</span></td>
 <td><span class="param-env">LLAMA_ARG_CONT_BATCHING</span></td>
 </tr>
@@ -1504,12 +1504,12 @@ built with GNU 13.3.0 for Linux x86_64</div>
 <td><span class="param-env">LLAMA_ARG_MMPROJ_URL</span></td>
 </tr>
 <tr>
-<td class="param-name">--mmproj-auto, , no-mmproj, --no-mmproj-auto</td>
+<td class="param-name">--mmproj-auto, --no-mmproj, --no-mmproj-auto</td>
 <td class="param-desc">是否使用多模态投影器文件（如果可用），在使用 -hf 时很有用<br><span class="param-default">默认：启用</span></td>
 <td><span class="param-env">LLAMA_ARG_MMPROJ_AUTO</span></td>
 </tr>
 <tr>
-<td class="param-name">--mmproj-offload, , no-mmproj-offload</td>
+<td class="param-name">--mmproj-offload, --no-mmproj-offload</td>
 <td class="param-desc">是否为多模态投影器启用 GPU 卸载<br><span class="param-default">默认：启用</span></td>
 <td><span class="param-env">LLAMA_ARG_MMPROJ_OFFLOAD</span></td>
 </tr>
@@ -1614,12 +1614,12 @@ built with GNU 13.3.0 for Linux x86_64</div>
 <td><span class="param-env">LLAMA_ARG_UI_CONFIG_FILE</span></td>
 </tr>
 <tr>
-<td class="param-name">--webui-mcp-proxy, , no-webui-mcp-proxy</td>
+<td class="param-name">--webui-mcp-proxy, --no-webui-mcp-proxy</td>
 <td class="param-desc"><span class="param-deprecated">[已废弃：使用 --ui-mcp-proxy/--no-ui-mcp-proxy]</span> <strong>[实验性]</strong> 是否启用 MCP CORS 代理</td>
 <td><span class="param-env">LLAMA_ARG_WEBUI_MCP_PROXY</span></td>
 </tr>
 <tr>
-<td class="param-name">--ui-mcp-proxy, , no-ui-mcp-proxy</td>
+<td class="param-name">--ui-mcp-proxy, --no-ui-mcp-proxy</td>
 <td class="param-desc"><strong>[实验性]</strong> 是否启用 MCP CORS 代理 — 在不可信环境中不要启用<br><span class="param-default">默认：禁用</span></td>
 <td><span class="param-env">LLAMA_ARG_UI_MCP_PROXY</span></td>
 </tr>
@@ -1629,12 +1629,12 @@ built with GNU 13.3.0 for Linux x86_64</div>
 <td><span class="param-env">LLAMA_ARG_TOOLS</span></td>
 </tr>
 <tr>
-<td class="param-name">--webui, , no-webui</td>
+<td class="param-name">--webui, --no-webui</td>
 <td class="param-desc"><span class="param-deprecated">[已废弃：使用 --ui/--no-ui]</span> 是否启用 Web UI</td>
 <td><span class="param-env">LLAMA_ARG_WEBUI</span></td>
 </tr>
 <tr>
-<td class="param-name">--ui, , no-ui</td>
+<td class="param-name">--ui, --no-ui</td>
 <td class="param-desc">是否启用 Web UI<br><span class="param-default">默认：启用</span></td>
 <td><span class="param-env">LLAMA_ARG_UI</span></td>
 </tr>
@@ -1649,12 +1649,12 @@ built with GNU 13.3.0 for Linux x86_64</div>
 <thead><tr><th>参数</th><th>描述</th><th>环境变量</th></tr></thead>
 <tbody>
 <tr>
-<td class="param-name">--embedding, , embeddings</td>
+<td class="param-name">--embedding, --embeddings</td>
 <td class="param-desc">限制仅支持嵌入（embedding）用例；仅与专用嵌入模型一起使用<br><span class="param-default">默认：禁用</span></td>
 <td><span class="param-env">LLAMA_ARG_EMBEDDINGS</span></td>
 </tr>
 <tr>
-<td class="param-name">--rerank, , reranking</td>
+<td class="param-name">--rerank, --reranking</td>
 <td class="param-desc">在服务器上启用重排序（reranking）端点<br><span class="param-default">默认：禁用</span></td>
 <td><span class="param-env">LLAMA_ARG_RERANKING</span></td>
 </tr>
@@ -1694,7 +1694,7 @@ built with GNU 13.3.0 for Linux x86_64</div>
 <td><span class="param-env">LLAMA_CHAT_TEMPLATE_KWARGS</span></td>
 </tr>
 <tr>
-<td class="param-name">--cache-prompt, , no-cache-prompt</td>
+<td class="param-name">--cache-prompt, --no-cache-prompt</td>
 <td class="param-desc">是否启用提示词缓存（prompt caching）<br><span class="param-default">默认：启用</span></td>
 <td><span class="param-env">LLAMA_ARG_CACHE_PROMPT</span></td>
 </tr>
@@ -1704,7 +1704,7 @@ built with GNU 13.3.0 for Linux x86_64</div>
 <td><span class="param-env">LLAMA_ARG_CACHE_REUSE</span></td>
 </tr>
 <tr>
-<td class="param-name">--jinja, , no-jinja</td>
+<td class="param-name">--jinja, --no-jinja</td>
 <td class="param-desc">是否在聊天中使用 Jinja 模板引擎<br><span class="param-default">默认：启用</span></td>
 <td><span class="param-env">LLAMA_ARG_JINJA</span></td>
 </tr>
@@ -1719,12 +1719,12 @@ built with GNU 13.3.0 for Linux x86_64</div>
 <td><span class="param-env">LLAMA_ARG_CHAT_TEMPLATE_FILE</span></td>
 </tr>
 <tr>
-<td class="param-name">--skip-chat-parsing, , no-skip-chat-parsing</td>
+<td class="param-name">--skip-chat-parsing, --no-skip-chat-parsing</td>
 <td class="param-desc">强制使用纯内容解析器，即使指定了 Jinja 模板；模型将在内容部分输出所有内容，包括任何推理（reasoning）和/或工具调用（tool calls）<br><span class="param-default">默认：禁用</span></td>
 <td><span class="param-env">LLAMA_ARG_SKIP_CHAT_PARSING</span></td>
 </tr>
 <tr>
-<td class="param-name">--prefill-assistant, , no-prefill-assistant</td>
+<td class="param-name">--prefill-assistant, --no-prefill-assistant</td>
 <td class="param-desc">如果最后一条消息是 assistant 消息，是否预填充 assistant 的回复<br><span class="param-default">默认：启用预填充</span></td>
 <td><span class="param-env">LLAMA_ARG_PREFILL_ASSISTANT</span></td>
 </tr>
@@ -1798,7 +1798,7 @@ built with GNU 13.3.0 for Linux x86_64</div>
 <td><span class="param-env">LLAMA_ARG_ENDPOINT_PROPS</span></td>
 </tr>
 <tr>
-<td class="param-name">--slots, , no-slots</td>
+<td class="param-name">--slots, --no-slots</td>
 <td class="param-desc">暴露槽（slots）监控端点<br><span class="param-default">默认：启用</span></td>
 <td><span class="param-env">LLAMA_ARG_ENDPOINT_SLOTS</span></td>
 </tr>
@@ -1838,7 +1838,7 @@ built with GNU 13.3.0 for Linux x86_64</div>
 <td><span class="param-env">LLAMA_ARG_MODELS_MAX</span></td>
 </tr>
 <tr>
-<td class="param-name">--models-autoload, , no-models-autoload</td>
+<td class="param-name">--models-autoload, --no-models-autoload</td>
 <td class="param-desc">路由器服务器是否自动加载模型<br><span class="param-default">默认：启用</span></td>
 <td><span class="param-env">LLAMA_ARG_MODELS_AUTOLOAD</span></td>
 </tr>
