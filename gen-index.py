@@ -16,6 +16,7 @@ CAT_RULES = [
     ('微调 / Fine-tuning', ['微调', 'fine-tun', 'swift']),
     ('RAG', ['rag']),
     ('基准测试 / Harness', ['harness', '基准', 'benchmark', '测试']),
+    ('官方帮助文档', ['llama-server', 'llama.cpp', '官方帮助']),
 ]
 
 categories = {}
