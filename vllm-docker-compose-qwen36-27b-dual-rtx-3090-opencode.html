@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>在双 RTX 3090 上运行 Qwen 3.6 27B 的 vLLM Docker Compose 方案</title>
+<style>
+  :root {
+    --bg: #0d0d0d;
+    --surface: #1a1a1a;
+    --border: #2a2a2a;
+    --text: #e8e8ed;
+    --text-muted: #888;
+    --accent: #f5c842;
+    --code-bg: #141414;
+    --link: #7eb8f5;
+    --green: #3fb950;
+    --red: #f85149;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem 4rem;
+  }
+  a { color: var(--link); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  h1, h2, h3 { color: var(--text); margin-top: 2rem; margin-bottom: 1rem; }
+  h1 { font-size: 1.8rem; border-bottom: 1px solid var(--border); padding-bottom: 0.5rem; }
+  h2 { font-size: 1.4rem; }
+  h3 { font-size: 1.15rem; color: var(--accent); }
+  p { margin-bottom: 1rem; }
+  hr { border: none; border-top: 1px solid var(--border); margin: 2rem 0; }
+  .meta { color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.5rem; }
+  .meta a { color: var(--accent); }
+  img.featured { width: 657px; max-width: 100%; display: block; margin: 0 auto 1.5rem; border-radius: 8px; }
+  .intro { font-size: 1.05rem; color: var(--text-muted); margin-bottom: 2rem; }
+  table { width: 100%; border-collapse: collapse; margin: 1rem 0 1.5rem; font-size: 0.9rem; background: var(--surface); border-radius: 6px; overflow: hidden; }
+  th, td { padding: 0.55rem 0.75rem; border: 1px solid var(--border); text-align: left; }
+  th { background: #222; font-weight: 600; color: var(--accent); }
+  code { background: var(--code-bg); padding: 0.15em 0.4em; border-radius: 4px; font-size: 0.88em; font-family: "JetBrains Mono", "Fira Code", "Cascadia Code", Consolas, monospace; color: #f0883e; }
+  pre { background: #1e1e2e; border: 1px solid #3a3a4a; border-left: 3px solid var(--accent); border-radius: 6px; padding: 1rem 1.2rem; overflow-x: auto; margin: 1rem 0 1.5rem; font-size: 0.95rem; line-height: 1.6; }
+  pre code { background: none; padding: 0; color: #cdd6f4; }
+  ul, ol { margin: 0.5rem 0 1rem 1.5rem; }
+  li { margin-bottom: 0.35rem; }
+  blockquote { border-left: 3px solid var(--accent); padding: 0.5rem 1rem; margin: 1rem 0; background: rgba(245, 200, 66, 0.05); border-radius: 0 6px 6px 0; }
+  .highlight { color: var(--green); font-weight: 600; }
+  .warning { color: var(--red); font-weight: 600; }
+  strong { color: var(--text); }
+  .footer { text-align: center; color: var(--text-muted); font-size: 0.85rem; margin-top: 3rem; padding-top: 1rem; border-top: 1px solid var(--border); }
+  .tags { margin-top: 2rem; display: flex; flex-wrap: wrap; gap: 0.5rem; }
+  .tags span { background: var(--surface); border: 1px solid var(--border); border-radius: 4px; padding: 0.2rem 0.6rem; font-size: 0.8rem; color: var(--text-muted); }
+  .config-label { color: var(--accent); font-weight: 600; font-size: 0.85rem; margin-top: 1.5rem; display: block; }
+
+/* TOC Toggle Button */
+#toc-toggle {
+  position: fixed; top: 1.2rem; left: 1.2rem; z-index: 1001;
+  width: 36px; height: 36px;
+  background: rgba(245, 200, 66, 0.12);
+  border: 1px solid rgba(245, 200, 66, 0.35);
+  border-radius: 6px; cursor: pointer;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; padding: 0;
+  transition: background 0.2s;
+}
+#toc-toggle:hover { background: rgba(245, 200, 66, 0.22); border-color: rgba(245, 200, 66, 0.5); }
+#toc-toggle span { display: block; width: 18px; height: 2px; background: #f5c842; border-radius: 1px; transition: transform 0.3s, opacity 0.3s; }
+#toc-toggle.open span:nth-child(1) { transform: translateY(6px) rotate(45deg); }
+#toc-toggle.open span:nth-child(2) { opacity: 0; }
+#toc-toggle.open span:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
+
+/* TOC Panel */
+#toc-nav {
+  position: fixed; top: 0; left: -320px;
+  width: 300px; height: 100vh;
+  background: #111; border-right: 1px solid #2a2a2a;
+  z-index: 1000; padding: 4.5rem 1.2rem 1.5rem;
+  overflow-y: auto; transition: left 0.3s ease;
+}
+#toc-nav.open { left: 0; box-shadow: 4px 0 20px rgba(0,0,0,0.5); }
+.toc-header { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.1em; color: #888; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid #2a2a2a; }
+#toc-nav ul { list-style: none; margin: 0; padding: 0; }
+#toc-nav li { margin: 0; }
+.toc-link { display: block; padding: 0.45rem 0.75rem; color: #c0c0c5; text-decoration: none; font-size: 0.9rem; border-radius: 4px; transition: background 0.15s, color 0.15s; border-left: 2px solid transparent; overflow-wrap: break-word; word-break: break-word; }
+.toc-link:hover { background: rgba(245, 200, 66, 0.08); color: #f5c842; border-left-color: #f5c842; }
+.toc-link.sub { padding-left: 1.5rem; font-size: 0.85rem; color: #999; }
+.toc-link.sub:hover { color: #f5c842; }
+
+/* Overlay */
+.toc-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); z-index: 999; cursor: pointer; }
+.toc-overlay.open { display: block; }
+h2[id], h3[id] { scroll-margin-top: 1rem; }
+</style>
+</head>
+<body>
+
+<!-- TOC Toggle Button -->
+<button id="toc-toggle" onclick="document.getElementById('toc-nav').classList.toggle('open');document.getElementById('toc-toggle').classList.toggle('open');document.getElementById('toc-overlay').classList.toggle('open');" aria-label="切换导航目录">
+  <span></span><span></span><span></span>
+</button>
+
+<!-- TOC Navigation Panel -->
+<nav id="toc-nav">
+  <div class="toc-header">导航目录</div>
+  <ul>
+    <li><a href="#intro" class="toc-link">概述</a></li>
+    <li><a href="#docker-compose" class="toc-link">Docker Compose 配置</a></li>
+    <li><a href="#param-explanation" class="toc-link">参数详解</a></li>
+    <li><a href="#opencode-config" class="toc-link">OpenCode 客户端配置</a></li>
+    <li><a href="#tests" class="toc-link">测试</a></li>
+    <li><a href="#bugs-found" class="toc-link sub">Qwen 3.6 27B 发现并修复的 Bug</a></li>
+    <li><a href="#gha-prompt" class="toc-link sub">GitHub Actions Workflow 更新提示词</a></li>
+  </ul>
+</nav>
+
+<!-- Overlay -->
+<div class="toc-overlay" id="toc-overlay" onclick="document.getElementById('toc-nav').classList.remove('open');document.getElementById('toc-toggle').classList.remove('open');document.getElementById('toc-overlay').classList.remove('open');"></div>
+
+<h1>在双 RTX 3090 上运行 Qwen 3.6 27B 的 vLLM Docker Compose 方案（附 OpenCode 配置）</h1>
+<p class="meta">
+  原文：<a href="https://www.dzombak.com/blog/2026/04/a-vllm-docker-compose-recipe-for-running-qwen-3-6-27b-on-dual-rtx-3090s-opencode-configuration/" target="_blank">A vLLM Docker Compose recipe for running Qwen 3.6 27B on dual RTX 3090s (+OpenCode configuration)</a>
+  | 作者：Chris Dzombak | 发布日期：2026 年 4 月 27 日
+</p>
+
+<h2 id="intro">概述</h2>
+<p>昨天我花了一些时间，在一台（太阳能供电的）双 RTX 3090 机器上把最新的 <a href="https://huggingface.co/cyankiwi/Qwen3.6-27B-AWQ-BF16-INT4" target="_blank">Qwen 3.6 27B</a> 模型跑了起来。这套配置下，我能够达到约 <strong>100 tokens/秒</strong> 的生成速度，并且可以使用模型完整的 <strong>256k 上下文窗口</strong>。</p>
+<p>这个部署使用的是 <code>vllm/vllm-openai:latest</code> 官方镜像，不需要打补丁或其他额外操作。</p>
+
+<h2 id="docker-compose">Docker Compose 配置</h2>
+<p class="config-label">docker-compose.yml</p>
+<pre><code>services:
+  vllm-qwen36:
+    image: vllm/vllm-openai:latest
+    container_name: vllm-qwen36
+    ipc: host
+    shm_size: 32gb
+    ports:
+      - "8337:8000"
+    volumes:
+      - /opt/docker/data/vllm/cache/huggingface:/root/.cache/huggingface
+      - /opt/docker/data/vllm/cache/vllm:/root/.cache/vllm
+    environment:
+      VLLM_ALLOW_LONG_MAX_MODEL_LEN: "1"
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              device_ids: ['0', '1']
+              capabilities: [gpu]
+    command: cyankiwi/Qwen3.6-27B-AWQ-BF16-INT4 --tensor-parallel-size 2 --max-model-len 262144 --gpu-memory-utilization 0.98 --mm-encoder-tp-mode data  --kv-cache-dtype fp8 --enable-prefix-caching --enable-chunked-prefill --max-num-batched-tokens 4096 --reasoning-parser qwen3 --enable-auto-tool-choice --tool-call-parser qwen3_coder --max-num-seqs 2 --speculative-config '{"method":"mtp","num_speculative_tokens":2}' --performance-mode interactivity</code></pre>
+
+<h2 id="param-explanation">参数详解</h2>
+<table>
+  <tr><th>参数</th><th>说明</th></tr>
+  <tr><td><code>cyankiwi/Qwen3.6-27B-AWQ-BF16-INT4</code></td><td>AWQ 量化版本，混合精度（BF16 + INT4），兼顾速度与质量</td></tr>
+  <tr><td><code>--tensor-parallel-size 2</code></td><td>双卡张量并行</td></tr>
+  <tr><td><code>--max-model-len 262144</code></td><td>启用完整的 256k 上下文窗口</td></tr>
+  <tr><td><code>--gpu-memory-utilization 0.98</code></td><td>GPU 显存利用率设为 98%</td></tr>
+  <tr><td><code>--mm-encoder-tp-mode data</code></td><td>多模态编码器张量并行模式（数据并行）</td></tr>
+  <tr><td><code>--kv-cache-dtype fp8</code></td><td>FP8 KV Cache，大幅节省显存</td></tr>
+  <tr><td><code>--enable-prefix-caching</code></td><td>前缀缓存，相同 prompt 前缀复用 KV Cache，加速重复请求</td></tr>
+  <tr><td><code>--enable-chunked-prefill</code></td><td>分块预填充，避免超长 prompt 一次性加载导致 OOM</td></tr>
+  <tr><td><code>--max-num-batched-tokens 4096</code></td><td>每批最大 token 数</td></tr>
+  <tr><td><code>--reasoning-parser qwen3</code></td><td>启用 Qwen3 推理解析器（支持思考过程输出）</td></tr>
+  <tr><td><code>--enable-auto-tool-choice</code></td><td>启用自动工具选择</td></tr>
+  <tr><td><code>--tool-call-parser qwen3_coder</code></td><td>使用 Qwen3 Coder 工具调用解析器</td></tr>
+  <tr><td><code>--max-num-seqs 2</code></td><td>最大并发序列数为 2</td></tr>
+  <tr><td><code>--speculative-config '{"method":"mtp","num_speculative_tokens":2}'</code></td><td>MTP 投机解码，每次猜测 2 个 token</td></tr>
+  <tr><td><code>--performance-mode interactivity</code></td><td>交互模式——优先低延迟，适合对话场景</td></tr>
+</table>
+
+<h2 id="opencode-config">OpenCode 客户端配置</h2>
+<p>作者的 OpenCode 配置如下，通过 OpenAI 兼容接口连接到本地 vLLM 服务：</p>
+<p class="config-label">~/.config/opencode/opencode.json</p>
+<pre><code>{
+  "$schema": "https://opencode.ai/config.json",
+  "provider": {
+    "dzai": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "DzAI",
+      "options": {
+        "baseURL": "http://dzai.my-tailnet.ts.net:8337/v1"
+      },
+      "models": {
+        "cyankiwi/Qwen3.6-27B-AWQ-BF16-INT4": {
+          "name": "Qwen3.6 27B (256k)",
+          "tools": true,
+          "reasoning": true,
+          "limit": { "context": 262144, "output": 32768 },
+          "options": {
+            "temperature": 0.6,
+            "top_p": 0.95,
+            "extraBody": {
+              "top_k": 20,
+              "presence_penalty": 0.0,
+              "chat_template_kwargs": { "enable_thinking": true }
+            }
+          }
+        }
+      }
+    }
+  }
+}</code></pre>
+<p>作者表示，分享这个方案的原因是：(1) 找到一组能让它良好运行的参数组合并不简单；(2) 这是他试过的第一个<strong>既能自托管、又确实好用</strong>的编程模型。</p>
+
+<h2 id="tests">测试</h2>
+<p>作者在 OpenCode 中用 Qwen 3.6 27B 对几个自己的开源代码库做了测试，提示词是<strong>"在这个代码库中找出任何 bug 并提出修复方案"</strong>，结果令他印象深刻。</p>
+<p>他还用了一个标准的 GitHub Actions workflow 更新提示词（见下文），这个提示词会大量调用 MCP 工具，他对结果也比较满意。</p>
+<p>往后他想，这些就会成为他测试 LLM 编程模型的标准手段——有点像 Simon Willison 的"画一只骑自行车的鹈鹕"那种标志性测试。</p>
+
+<h3 id="bugs-found">Qwen 3.6 27B 发现并修复的 Bug</h3>
+<ol>
+  <li><strong>fix: 只在元数据成功后才将文件加入分组</strong> · <code>cdzombak/gallerygen@123ebc4</code><br>
+    将 groups append 移到 getImageMetadata 之后，这样元数据提取失败的文件会被排除在渲染的相册之外，而不是以零尺寸和错误的宽高比显示出来。</li>
+  <li><strong>fix: 修正 ldflags 变量大小写，从 main.version 改为 main.Version</strong> · <code>cdzombak/gallerygen@f986348</code><br>
+    Go 变量声明为大写 <code>Version</code>，但 ldflags 使用的是小写 <code>version</code>。由于 <code>-X</code> 是大小写敏感的，版本号从未被注入，所有构建报告的版本都是空的。</li>
+  <li><strong>fix: 修正 -printVersion 标志的帮助文本</strong> · <code>cdzombak/mastodon-post@a928327</code><br>
+    一个最简单的 Mastodon 发帖 CLI 工具——修正了帮助文本中的错误。</li>
+  <li><strong>fix: 为 -printVersion 输出添加缺失的换行符</strong> · <code>cdzombak/mastodon-post@8c1b8ba</code><br>
+    同样的工具，输出版本号时末尾缺少换行符。</li>
+</ol>
+
+<h3 id="gha-prompt">GitHub Actions Workflow 更新提示词</h3>
+<blockquote>
+<p>Update all GitHub Actions in this repo's workflows to their latest major versions. Use your GitHub MCP tool to verify each action's latest version and validate that each tag exists. Let me know if there are any breaking changes. Make a PR when complete.</p>
+</blockquote>
+<p><strong>翻译：</strong>将此仓库 workflow 中的所有 GitHub Actions 更新到最新主版本。使用你的 GitHub MCP 工具验证每个 action 的最新版本，并确认每个 tag 确实存在。如果有破坏性变更请告诉我。完成后提交一个 PR。</p>
+
+<div class="tags">
+  <span>vLLM</span><span>Qwen 3.6</span><span>Docker Compose</span><span>RTX 3090</span><span>AWQ 量化</span><span>自托管 LLM</span><span>OpenCode</span><span>FP8 KV Cache</span><span>MTP 投机解码</span>
+</div>
+
+<div class="footer">
+  原文链接：<a href="https://www.dzombak.com/blog/2026/04/a-vllm-docker-compose-recipe-for-running-qwen-3-6-27b-on-dual-rtx-3090s-opencode-configuration/" target="_blank">Chris Dzombak's Blog</a> | 翻译仅供技术参考
+</div>
+
+</body>
+</html>
