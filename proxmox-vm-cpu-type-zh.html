@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Proxmox 中 CPU 类型对 Windows 客户机内存性能影响</title>
+<style>
+  :root {
+    --bg: #1a1a2e;
+    --surface: #16213e;
+    --text: #e0e0e0;
+    --text-muted: #a0a0b0;
+    --accent: #64ffda;
+    --code-bg: #0f3460;
+    --border: #2a2a4a;
+    --link: #79b8ff;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.8;
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem;
+  }
+  h1 { font-size: 1.8rem; margin: 2rem 0 1rem; color: #fff; }
+  h2 { font-size: 1.4rem; margin: 1.8rem 0 0.8rem; color: #fff; border-left: 3px solid var(--accent); padding-left: 0.8rem; }
+  h3 { font-size: 1.15rem; margin: 1.4rem 0 0.6rem; color: #fff; }
+  p { margin: 0.8rem 0; }
+  a { color: var(--link); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  code {
+    background: var(--code-bg);
+    padding: 0.15em 0.4em;
+    border-radius: 3px;
+    font-size: 0.9em;
+    font-family: "Fira Code", "Cascadia Code", "JetBrains Mono", monospace;
+  }
+  pre {
+    background: var(--code-bg);
+    padding: 1rem;
+    border-radius: 6px;
+    overflow-x: auto;
+    margin: 1rem 0;
+    font-size: 0.88rem;
+    line-height: 1.6;
+  }
+  pre code {
+    background: none;
+    padding: 0;
+  }
+  hr { border: none; border-top: 1px solid var(--border); margin: 2rem 0; }
+  .img-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin: 1rem 0;
+  }
+  .img-group img {
+    max-width: 100%;
+    border-radius: 4px;
+    border: 1px solid var(--border);
+  }
+  .img-caption {
+    color: var(--text-muted);
+    font-size: 0.9em;
+    margin: 0.3rem 0 1rem;
+  }
+  .footnotes {
+    margin-top: 2rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border);
+    font-size: 0.9em;
+    color: var(--text-muted);
+  }
+  .footnotes ol { padding-left: 1.2rem; }
+  .footnotes li { margin: 0.4rem 0; }
+  sup a { color: var(--accent); font-size: 0.75em; }
+  .meta {
+    color: var(--text-muted);
+    font-size: 0.85em;
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .diff-line { color: #ff7b72; }
+  .add-line { color: #7ee787; }
+</style>
+</head>
+<body>
+
+<h1>Proxmox 中 CPU 类型对 Windows 客户机内存性能影响</h1>
+<div class="meta">原文：Zen Wen | 2025年5月21日 | 来源：<a href="https://www.zenwen.tw/proxmox-vm-cpu-type-and-windows-client-performance/" target="_blank">zenwen.tw</a></div>
+
+<h2>前言</h2>
+<p>前段时间看到了<a href="https://blog.bairuo.net/2025/03/03/%e5%85%b3%e4%ba%8eproxmox%e4%b8%adcpu%e7%b1%bb%e5%9e%8b%e5%af%b9windows%e5%ae%a2%e6%88%b7%e6%9c%ba%e7%9a%84%e6%80%a7%e8%83%bd%e5%bd%b1%e5%93%8d/" target="_blank">小林家的白渃</a>发布的文章<sup><a href="#fn1">[1]</a></sup>，根据他的测试，Windows 客户机的内存性能损失是因为 CPU type 设置为 host 的原因。我自己按照类似的流程做了测试，不过得出的结论略有不同，本文为测试结果的记录。</p>
+
+<h2>测试</h2>
+<p>根据小林家的白渃的测试结果，Windows 客户机内存性能下降的原因是 host 提供的某些 CPU flag 可能触发了 Windows 的安全机制，导致性能下降，因此我也是从 CPU flag 上开始着手。</p>
+
+<h3>测试方法</h3>
+<p>我使用另外一台 Linux 的客户机来获得对应 CPU type 提供的 flag，使用以下命令获取：</p>
+<pre><code>$ lscpu | grep Flags | sed -e 's/Flags: //g' | tr ' ' '\n' | sort > host-flags</code></pre>
+<p>这样只要 diff 就可以快速得知不同 CPU type 对支持 flag 的区别：</p>
+<pre><code>$ diff haswell-notsx-flags haswell-notsx-IBRS-flags
+24a25,26
+&gt; ibpb
+&gt; ibrs</code></pre>
+
+<h4>修改 PVE 提供的 CPU flag</h4>
+<p>编辑 <code>/etc/qemu-server/&lt;id&gt;.conf</code>，加上 <code>args</code> 这一行。host 代表使用的 CPU model，后面的 +、- 为在此 model 上添加或移除的 CPU flag。加上 <code>args: -cpu</code> 后会覆盖掉 cpu 设定的部分，使用 <code>qm showcmd &lt;id&gt; --pretty</code> 来查看 QEMU 启动时的参数，args 的参数会被加在最后，覆盖前面设定的参数。</p>
+<pre><code>args: -cpu host,-arch-capabilities,-flush-l1d,-pdcm,-pdpe1gb,-ss,-ssbd,-stibp,-tsc_adjust,-umip,-vmx,-vnmi</code></pre>
+<p>可使用的 flag 可以在 <a href="https://qemu-project.gitlab.io/qemu/system/qemu-cpu-models.html" target="_blank">QEMU 文档</a><sup><a href="#fn2">[2]</a></sup> 中找到。</p>
+
+<h2>结果</h2>
+<p>我使用的 CPU 为 2690v3，为 Haswell 架构。经过测试能使用的 CPU model 为 Haswell-noTSX 和 Haswell-noTSX-IBRS，无法使用 Haswell 和 Haswell-IBRS，推测是 Xeon 缺少消费级的部分指令集。其中 Haswell-noTSX 和 Haswell-noTSX-IBRS 的区别为后者多了两个和 IBRS 相关的 flag，更接近 host 的 flag，因此主要是用这个 model 和 host 进行测试。</p>
+
+<p>首先先测试基本 model 的内存性能对比：</p>
+<p class="img-caption">左上：host，中上：haswell-noTSX，右上：haswell-noTSX-IBRS<br>
+左下：max，右下：x86-64-v2-aes</p>
+<p>可以看到 max 和 host 都有内存性能的问题。</p>
+
+<hr>
+
+<p>在他的文章总结中认为是 md-clear 和 flush-l1d 这两个 flag 导致操作系统启动漏洞修补、影响性能，因此直接测试 host 在分别减去这两个 flag 后有没有影响：</p>
+<p class="img-caption">左：无 md-clear flag，右：无 flush-l1d flag</p>
+<p>可以看到内存性能还是有问题。</p>
+
+<hr>
+
+<p>直接测试 host 减去所有比 haswell-noTSX-IBRS 多的 flag，以及把 haswell-noTSX-IBRS 加上所有能加的 flag。</p>
+
+<p>host 减去所有能减掉的 flag 后，只比 haswell-noTSX-IBRS 多三个 flag：</p>
+<pre><code>5d4
+&lt; arch_perfmon
+54d52
+&lt; ssbd
+60d57
+&lt; stibp</code></pre>
+
+<p>haswell-noTSX-IBRS 加上所有能加的 flag 后，只比 host 少两个 flag：</p>
+<pre><code>5a6
+&gt; arch_perfmon
+47a49
+&gt; pdcm</code></pre>
+
+<p class="img-caption">左：host 减去所有能减的 flag，右：haswell-noTSX-IBRS 加上所有能加的 flag</p>
+
+<p>可以看到 host 的 model 内存性能还是有问题，haswell-noTSX-IBRS 加上所有 flag 后还是没有问题。因此我认为可能和 CPU 漏洞没有很大的关系，不然就是和 pdcm 有关（能源管理部分）。</p>
+
+<hr>
+
+<p>最后我还是使用他文章中提供的解决方法，设定一个自定义的 CPU model，专门用来给 Windows 的虚拟机使用。</p>
+
+<p>编辑 <code>/etc/pve/virtual-guest/cpu-models.conf</code>：</p>
+<pre><code>cpu-model: windows-host
+    flags +arch-capabilities;+flush-l1d;+md-clear;+pdcm;+pdpe1gb;+ss;+ssbd;+stibp;+tsc_adjust;+umip;+vmx
+    phys-bits host
+    hidden 0
+    hv-vendor-id proxmox
+    reported-model Haswell-noTSX-IBRS</code></pre>
+
+<p>性能测试如下，没什么大问题。</p>
+
+<h2>参考</h2>
+<div class="footnotes">
+<ol>
+<li id="fn1"><a href="https://blog.bairuo.net/2025/03/03/%e5%85%b3%e4%ba%8eproxmox%e4%b8%adcpu%e7%b1%bb%e5%9e%8b%e5%af%b9windows%e5%ae%a2%e6%88%b7%e6%9c%ba%e7%9a%84%e6%80%a7%e8%83%bd%e5%bd%b1%e5%93%8d/" target="_blank">关于Proxmox中CPU类型对Windows客户机的性能影响 - 小林家的白渃</a></li>
+<li id="fn2"><a href="https://qemu-project.gitlab.io/qemu/system/qemu-cpu-models.html" target="_blank">QEMU / KVM CPU model configuration — QEMU documentation</a></li>
+</ol>
+</div>
+
+</body>
+</html>
