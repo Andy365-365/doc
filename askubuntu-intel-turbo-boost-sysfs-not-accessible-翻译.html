@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>无法更改 Intel Turbo Boost — AskUbuntu 翻译</title>
+<style>
+  :root {
+    --bg: #1a1a2e;
+    --surface: #16213e;
+    --card: #0f3460;
+    --text: #e0e0e0;
+    --text-muted: #a0a0a0;
+    --accent: #00b4d8;
+    --accent2: #e94560;
+    --code-bg: #0d1b2a;
+    --border: #2a2a4a;
+    --toc-bg: #111827;
+    --green: #4ade80;
+    --gold: #fbbf24;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    display: flex;
+  }
+
+  /* Sidebar TOC */
+  .toc {
+    position: fixed;
+    top: 0; left: 0;
+    width: 260px;
+    height: 100vh;
+    background: var(--toc-bg);
+    border-right: 1px solid var(--border);
+    padding: 24px 16px;
+    overflow-y: auto;
+    z-index: 10;
+  }
+  .toc h3 {
+    font-size: 14px;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 16px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+  .toc a {
+    display: block;
+    color: var(--text-muted);
+    text-decoration: none;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 13px;
+    transition: all 0.2s;
+  }
+  .toc a:hover { background: var(--card); color: var(--accent); }
+  .toc .meta { margin-top: 20px; padding-top: 12px; border-top: 1px solid var(--border); font-size: 12px; color: var(--text-muted); }
+  .toc .meta span { display: block; margin: 4px 0; }
+
+  /* Main content */
+  .main {
+    margin-left: 260px;
+    flex: 1;
+    max-width: 900px;
+    padding: 40px 48px 80px;
+  }
+
+  h1 {
+    font-size: 26px;
+    color: #fff;
+    margin-bottom: 8px;
+    line-height: 1.4;
+  }
+  .subtitle {
+    color: var(--text-muted);
+    font-size: 14px;
+    margin-bottom: 32px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid var(--border);
+  }
+  .subtitle a { color: var(--accent); text-decoration: none; }
+  .subtitle a:hover { text-decoration: underline; }
+
+  h2 {
+    font-size: 20px;
+    color: var(--accent);
+    margin: 40px 0 16px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+  }
+  h3 {
+    font-size: 16px;
+    color: var(--gold);
+    margin: 24px 0 12px;
+  }
+
+  .question, .answer {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    margin: 24px 0;
+  }
+  .answer { border-left: 4px solid var(--green); }
+  .badge {
+    display: inline-block;
+    font-size: 11px;
+    padding: 2px 10px;
+    border-radius: 12px;
+    margin-right: 8px;
+    vertical-align: middle;
+  }
+  .badge-q { background: var(--accent); color: #000; }
+  .badge-a { background: var(--green); color: #000; }
+  .badge-score { background: var(--card); color: var(--text-muted); }
+  .badge-accepted { background: var(--green); color: #000; }
+
+  p { margin: 12px 0; }
+
+  pre {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px;
+    margin: 16px 0;
+    overflow-x: auto;
+    font-size: 13px;
+    line-height: 1.5;
+  }
+  code {
+    font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+    color: #e2e8f0;
+  }
+  p code, li code {
+    background: var(--code-bg);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 13px;
+  }
+
+  .note {
+    background: rgba(251, 191, 36, 0.1);
+    border-left: 3px solid var(--gold);
+    padding: 12px 16px;
+    border-radius: 0 8px 8px 0;
+    margin: 16px 0;
+    font-size: 14px;
+  }
+
+  .tags { display: flex; flex-wrap: wrap; gap: 6px; margin: 16px 0; }
+  .tag {
+    background: var(--card);
+    color: var(--accent);
+    padding: 2px 10px;
+    border-radius: 4px;
+    font-size: 12px;
+    text-decoration: none;
+  }
+  .tag:hover { background: var(--accent); color: #000; }
+
+  footer {
+    margin-top: 48px;
+    padding-top: 24px;
+    border-top: 1px solid var(--border);
+    font-size: 13px;
+    color: var(--text-muted);
+  }
+</style>
+</head>
+<body>
+
+<nav class="toc">
+  <h3>📑 目录</h3>
+  <a href="#question">❓ 问题描述</a>
+  <a href="#answer">✅ 最佳答案</a>
+  <a href="#key-takeaway">💡 核心要点</a>
+  <a href="#examples">📋 BIOS 状态示例对比</a>
+  <div class="meta">
+    <span>📅 2017-01-27</span>
+    <span>👁 16,496 次浏览</span>
+    <span>👍 9 票 (问题) / 15 票 (回答)</span>
+    <span>🏷 sudo · intel · cpu</span>
+  </div>
+</nav>
+
+<main class="main">
+  <h1>无法更改 Intel Turbo Boost（/sys/devices/system/cpu/intel_pstate/no_turbo 不可访问）</h1>
+  <div class="subtitle">
+    原文：<a href="https://askubuntu.com/questions/876903" target="_blank">AskUbuntu #876903</a> · 作者：user47206 · 许可：CC BY-SA 3.0
+  </div>
+
+  <div class="tags">
+    <span class="tag">sudo</span>
+    <span class="tag">intel</span>
+    <span class="tag">cpu</span>
+    <span class="tag">administrator</span>
+    <span class="tag">editing</span>
+  </div>
+
+  <!-- QUESTION -->
+  <h2 id="question"><span class="badge badge-q">问题</span> 无法通过 sysfs 关闭 Intel Turbo Boost</h2>
+  <div class="question">
+    <p>我尝试按照 <a href="https://askubuntu.com/a/620114">这篇回答</a>（关于「在 Ubuntu 中禁用 Intel Turbo Boost」）中的步骤操作：</p>
+
+    <p>首先查看当前驱动：</p>
+<pre><code>cat /sys/devices/system/cpu/cpu*/cpufreq/scaling_driver
+intel_pstate
+intel_pstate
+intel_pstate
+intel_pstate</code></pre>
+
+    <p>然后查询 turbo 的启用/禁用状态：</p>
+<pre><code>cat /sys/devices/system/cpu/intel_pstate/no_turbo
+1</code></pre>
+
+    <p>这表示 turbo 是开启的。</p>
+
+    <p>但尝试禁用它时，提示「操作不允许」：</p>
+<pre><code>echo "0" | sudo tee /sys/devices/system/cpu/intel_pstate/no_turbo
+[sudo] password for cipeos:
+0
+tee: /sys/devices/system/cpu/intel_pstate/no_turbo: Operation not permitted</code></pre>
+
+    <p>尝试回答下方评论中的建议（<code>sudo echo "0" | sudo tee /sys/devices/system/cpu/intel_pstate/no_turbo</code>），结果一样。即使先执行 <code>sudo su</code> 再操作，仍然报同样的错。</p>
+
+    <p>尝试用编辑器手动打开该文件：</p>
+<pre><code>sudo gedit /sys/devices/system/cpu/intel_pstate/no_turbo</code></pre>
+
+    <p>文件内容只有一行：</p>
+<pre><code>1</code></pre>
+
+    <p>将其改为 0 并保存时，提示：「无法保存文件 "/sys/devices/system/cpu/intel_pstate/no_turbo"。您没有保存此文件所需的权限。请确认路径是否正确，然后重试。」</p>
+  </div>
+
+  <!-- ANSWER -->
+  <h2 id="answer"><span class="badge badge-accepted">✓ 最佳答案</span> <span class="badge badge-score">15 票</span></h2>
+  <div class="answer">
+    <p><strong>Doug Smythies</strong> 回答：</p>
+
+    <p>Turbo 启用/禁用标志可能会产生误导。以下是内核源码树中 <code>Documentation/cpu-freq/intel-pstate.txt</code> 的摘录：</p>
+<pre><code>Sysfs will show :
+        max_perf_pct:100, which corresponds to 1 core ratio
+        min_perf_pct:24, max_efficiency_ratio / max 1 Core ratio
+        no_turbo:0, turbo is not disabled
+        num_pstates:26 = (max 1 Core ratio - Max Efficiency Ratio + 1)
+        turbo_pct:39 = (max 1 core ratio - max non turbo ratio) / num_pstates</code></pre>
+
+    <p>因此，在这个案例中，"1" 表示 turbo 已被禁用。</p>
+
+    <p>对于大多数计算机，turbo 可以在 BIOS 中禁用。如果 turbo 在 BIOS 层面被禁用，那么就无法通过 Sysfs 覆盖该标志。下面给出两种情况的对比：</p>
+
+    <h3 id="examples">示例 1（BIOS 中已禁用 turbo）：</h3>
+<pre><code>$ echo 0 | sudo tee /sys/devices/system/cpu/intel_pstate/no_turbo
+0
+tee: /sys/devices/system/cpu/intel_pstate/no_turbo: Operation not permitted</code></pre>
+
+    <h3>示例 2（BIOS 中已启用 turbo）：</h3>
+<pre><code>$ cat /sys/devices/system/cpu/intel_pstate/no_turbo
+1
+$ echo 0 | sudo tee /sys/devices/system/cpu/intel_pstate/no_turbo
+0
+$ cat /sys/devices/system/cpu/intel_pstate/no_turbo
+0</code></pre>
+  </div>
+
+  <!-- KEY TAKEAWAY -->
+  <h2 id="key-takeaway">💡 核心要点总结</h2>
+  <div class="note">
+    <p><strong>关键理解：</strong><code>no_turbo</code> 文件的值含义与直觉相反——</p>
+    <ul style="margin: 8px 0 8px 20px;">
+      <li><code>0</code> = turbo <strong>未</strong>被禁用（即 turbo 处于启用状态）</li>
+      <li><code>1</code> = turbo 已被禁用</li>
+    </ul>
+    <p>提问者看到值为 <code>1</code>，误以为 turbo 是开启的，实际上 turbo 已经被禁用了。</p>
+    <p><strong>为什么无法写入：</strong>如果 turbo 在 BIOS 层面被禁用，内核会将 <code>no_turbo</code> 设为只读，此时即使以 root 权限也无法通过 sysfs 修改它。反之，如果 BIOS 中 turbo 是启用的，则可以通过 sysfs 动态开关。</p>
+    <p><strong>解决方案：</strong>如果想通过 sysfs 控制 turbo，需要进入 BIOS 确保 turbo 功能处于启用状态，然后就可以在系统中通过该文件动态切换了。</p>
+  </div>
+
+  <footer>
+    <p>📄 本文翻译自 AskUbuntu #876903 · 原文许可 CC BY-SA 3.0</p>
+    <p>原文链接：<a href="https://askubuntu.com/questions/876903/cannot-change-intel-turbo-boost-sys-devices-system-cpu-intel-pstate-no-turbo" target="_blank">https://askubuntu.com/questions/876903</a></p>
+  </footer>
+</main>
+
+</body>
+</html>
