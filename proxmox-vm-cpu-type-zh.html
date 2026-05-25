@@ -3,136 +3,344 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Proxmox 中 CPU 类型对 Windows 客户机内存性能影响</title>
+<title>Proxmox 中 CPU 类型对 Windows 客户机内存性能的影响 — 中文翻译</title>
 <style>
   :root {
-    --bg: #1a1a2e;
-    --surface: #16213e;
-    --text: #e0e0e0;
-    --text-muted: #a0a0b0;
-    --accent: #64ffda;
-    --code-bg: #0f3460;
-    --border: #2a2a4a;
-    --link: #79b8ff;
+    --bg: #0d0d0d;
+    --surface: #1a1a1a;
+    --border: #2a2a2a;
+    --text: #e8e8ed;
+    --text-muted: #888;
+    --accent: #f5c842;
+    --code-bg: #141414;
+    --link: #7eb8f5;
+    --green: #3fb950;
+    --badge-bg: #090909;
   }
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body {
-    font-family: -apple-system, "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
     background: var(--bg);
     color: var(--text);
-    line-height: 1.8;
-    max-width: 860px;
+    line-height: 1.7;
+    max-width: 960px;
     margin: 0 auto;
-    padding: 2rem 1.5rem;
+    padding: 2rem 1.5rem 4rem;
   }
-  h1 { font-size: 1.8rem; margin: 2rem 0 1rem; color: #fff; }
-  h2 { font-size: 1.4rem; margin: 1.8rem 0 0.8rem; color: #fff; border-left: 3px solid var(--accent); padding-left: 0.8rem; }
-  h3 { font-size: 1.15rem; margin: 1.4rem 0 0.6rem; color: #fff; }
-  p { margin: 0.8rem 0; }
   a { color: var(--link); text-decoration: none; }
   a:hover { text-decoration: underline; }
+  h1, h2, h3 { color: var(--text); margin-top: 2rem; margin-bottom: 1rem; }
+  h1 { font-size: 1.8rem; border-bottom: 1px solid var(--border); padding-bottom: 0.5rem; }
+  h2 { font-size: 1.4rem; }
+  h3 { font-size: 1.15rem; color: var(--accent); }
+  p { margin-bottom: 1rem; }
+  hr { border: none; border-top: 1px solid var(--border); margin: 2rem 0; }
   code {
     background: var(--code-bg);
     padding: 0.15em 0.4em;
-    border-radius: 3px;
-    font-size: 0.9em;
-    font-family: "Fira Code", "Cascadia Code", "JetBrains Mono", monospace;
+    border-radius: 4px;
+    font-size: 0.88em;
+    font-family: "JetBrains Mono", "Fira Code", "Cascadia Code", Consolas, monospace;
+    color: #f0883e;
   }
   pre {
-    background: var(--code-bg);
-    padding: 1rem;
+    background: #1e1e2e;
+    border: 1px solid #3a3a4a;
+    border-left: 3px solid var(--accent);
     border-radius: 6px;
+    padding: 1rem 1.2rem;
     overflow-x: auto;
-    margin: 1rem 0;
-    font-size: 0.88rem;
+    margin: 1rem 0 1.5rem;
+    font-size: 0.95rem;
     line-height: 1.6;
   }
   pre code {
     background: none;
     padding: 0;
+    color: #cdd6f4;
   }
-  hr { border: none; border-top: 1px solid var(--border); margin: 2rem 0; }
+  ul, ol { margin: 0.5rem 0 1rem 1.5rem; }
+  li { margin-bottom: 0.35rem; }
+  blockquote {
+    border-left: 3px solid var(--accent);
+    padding: 0.5rem 1rem;
+    margin: 1rem 0;
+    background: rgba(245, 200, 66, 0.05);
+    border-radius: 0 6px 6px 0;
+  }
+  strong { color: var(--text); }
+  .highlight { color: var(--green); font-weight: 600; }
+
+  /* Images */
   .img-group {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.5rem;
-    margin: 1rem 0;
+    gap: 0.75rem;
+    margin: 1.5rem 0;
+    justify-content: center;
   }
   .img-group img {
-    max-width: 100%;
-    border-radius: 4px;
+    max-width: 32%;
+    min-width: 200px;
+    border-radius: 6px;
     border: 1px solid var(--border);
   }
-  .img-caption {
-    color: var(--text-muted);
-    font-size: 0.9em;
-    margin: 0.3rem 0 1rem;
+  .img-group.two-col img {
+    max-width: 48%;
   }
+  .img-full {
+    max-width: 100%;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    display: block;
+    margin: 1rem auto;
+  }
+  .img-caption {
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    margin-top: -1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  /* Footnotes */
   .footnotes {
+    border-top: 1px solid var(--border);
     margin-top: 2rem;
     padding-top: 1rem;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+  }
+  .footnotes ol { margin-left: 1.5rem; }
+  .footnotes li { margin-bottom: 0.5rem; }
+  sup a { color: var(--accent); }
+
+  /* Footer */
+  .footer {
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    margin-top: 3rem;
+    padding-top: 1rem;
     border-top: 1px solid var(--border);
-    font-size: 0.9em;
-    color: var(--text-muted);
   }
-  .footnotes ol { padding-left: 1.2rem; }
-  .footnotes li { margin: 0.4rem 0; }
-  sup a { color: var(--accent); font-size: 0.75em; }
-  .meta {
-    color: var(--text-muted);
-    font-size: 0.85em;
-    margin-bottom: 2rem;
-    padding-bottom: 1rem;
-    border-bottom: 1px solid var(--border);
-  }
-  .diff-line { color: #ff7b72; }
-  .add-line { color: #7ee787; }
+
+/* TOC Navigation */
+#toc-toggle {
+  position: fixed;
+  top: 1.2rem;
+  left: 1.2rem;
+  z-index: 1001;
+  width: 36px;
+  height: 36px;
+  background: rgba(245, 200, 66, 0.12);
+  border: 1px solid rgba(245, 200, 66, 0.35);
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 0;
+  transition: background 0.2s;
+}
+#toc-toggle:hover {
+  background: rgba(245, 200, 66, 0.22);
+  border-color: rgba(245, 200, 66, 0.5);
+}
+#toc-toggle span {
+  display: block;
+  width: 18px;
+  height: 2px;
+  background: #f5c842;
+  border-radius: 1px;
+  transition: transform 0.3s, opacity 0.3s;
+}
+#toc-toggle.open span:nth-child(1) {
+  transform: translateY(6px) rotate(45deg);
+}
+#toc-toggle.open span:nth-child(2) {
+  opacity: 0;
+}
+#toc-toggle.open span:nth-child(3) {
+  transform: translateY(-6px) rotate(-45deg);
+}
+
+#toc-nav {
+  position: fixed;
+  top: 0;
+  left: -320px;
+  width: 300px;
+  height: 100vh;
+  background: #111;
+  border-right: 1px solid #2a2a2a;
+  z-index: 1000;
+  padding: 4.5rem 1.2rem 1.5rem;
+  overflow-y: auto;
+  transition: left 0.3s ease;
+  box-shadow: none;
+}
+#toc-nav.open {
+  left: 0;
+  box-shadow: 4px 0 20px rgba(0,0,0,0.5);
+}
+.toc-header {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #888;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid #2a2a2a;
+}
+#toc-nav ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+#toc-nav li {
+  margin: 0;
+}
+.toc-link {
+  display: block;
+  padding: 0.45rem 0.75rem;
+  color: #c0c0c5;
+  text-decoration: none;
+  font-size: 0.9rem;
+  border-radius: 4px;
+  transition: background 0.15s, color 0.15s;
+  border-left: 2px solid transparent;
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+.toc-link:hover {
+  background: rgba(245, 200, 66, 0.08);
+  color: #f5c842;
+  border-left-color: #f5c842;
+}
+#toc-nav.open ~ .toc-overlay {
+  display: block;
+}
+.toc-overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.4);
+  z-index: 999;
+  cursor: pointer;
+}
+html {
+  scroll-behavior: smooth;
+}
+h2[id], h3[id] {
+  scroll-margin-top: 1rem;
+}
+
 </style>
 </head>
 <body>
+<nav style="padding:12px 0;border-bottom:1px solid #21262d;margin-bottom:1.5rem">
+<a href="index.html" style="color:#58a6ff;text-decoration:none;font-size:0.9rem">&#8592; 返回文章列表</a>
+</nav>
 
-<h1>Proxmox 中 CPU 类型对 Windows 客户机内存性能影响</h1>
-<div class="meta">原文：Zen Wen | 2025年5月21日 | 来源：<a href="https://www.zenwen.tw/proxmox-vm-cpu-type-and-windows-client-performance/" target="_blank">zenwen.tw</a></div>
+<!-- TOC Toggle Button -->
+<button id="toc-toggle" onclick="document.getElementById('toc-nav').classList.toggle('open')" aria-label="切换导航目录">
+  <span></span>
+  <span></span>
+  <span></span>
+</button>
 
-<h2>前言</h2>
-<p>前段时间看到了<a href="https://blog.bairuo.net/2025/03/03/%e5%85%b3%e4%ba%8eproxmox%e4%b8%adcpu%e7%b1%bb%e5%9e%8b%e5%af%b9windows%e5%ae%a2%e6%88%b7%e6%9c%ba%e7%9a%84%e6%80%a7%e8%83%bd%e5%bd%b1%e5%93%8d/" target="_blank">小林家的白渃</a>发布的文章<sup><a href="#fn1">[1]</a></sup>，根据他的测试，Windows 客户机的内存性能损失是因为 CPU type 设置为 host 的原因。我自己按照类似的流程做了测试，不过得出的结论略有不同，本文为测试结果的记录。</p>
+<!-- TOC Navigation Panel -->
+<nav id="toc-nav">
+  <div class="toc-header">导航目录</div>
+  <ul>
+<li><a href="#preface" class="toc-link">前言</a></li>
+<li><a href="#test" class="toc-link">测试</a></li>
+<li><a href="#method" class="toc-link">测试方法</a></li>
+<li><a href="#modify-flags" class="toc-link">修改 PVE 提供的 CPU flag</a></li>
+<li><a href="#results" class="toc-link">结果</a></li>
+<li><a href="#custom-model" class="toc-link">自定义 CPU 模型</a></li>
+<li><a href="#references" class="toc-link">参考</a></li>
+  </ul>
+</nav>
+<div class="toc-overlay" onclick="document.getElementById('toc-nav').classList.remove('open')"></div>
 
-<h2>测试</h2>
-<p>根据小林家的白渃的测试结果，Windows 客户机内存性能下降的原因是 host 提供的某些 CPU flag 可能触发了 Windows 的安全机制，导致性能下降，因此我也是从 CPU flag 上开始着手。</p>
+<h1>Proxmox 中 CPU 类型对 Windows 客户机内存性能的影响</h1>
 
-<h3>测试方法</h3>
-<p>我使用另外一台 Linux 的客户机来获得对应 CPU type 提供的 flag，使用以下命令获取：</p>
-<pre><code>$ lscpu | grep Flags | sed -e 's/Flags: //g' | tr ' ' '\n' | sort > host-flags</code></pre>
-<p>这样只要 diff 就可以快速得知不同 CPU type 对支持 flag 的区别：</p>
+<p style="color:var(--text-muted); font-size:0.9rem;">
+  原文：<a href="https://www.zenwen.tw/proxmox-vm-cpu-type-and-windows-client-performance/" target="_blank">Proxmox 中 CPU 類型對 Windows 客戶機記憶體性能影響</a> by Zen Wen<br>
+  发布日期：2025 年 5 月 21 日 &nbsp;|&nbsp; CC BY-SA 4.0
+</p>
+
+<hr>
+
+<h2 id="preface">前言</h2>
+<p>前段时间看到了<a href="https://blog.bairuo.net/2025/03/03/%e5%85%b3%e4%ba%8eproxmox%e4%b8%adcpu%e7%b1%bb%e5%9e%8b%e5%af%b9windows%e5%ae%a2%e6%88%b7%e6%9c%ba%e7%9a%84%e6%80%a7%e8%83%bd%e5%bd%b1%e5%93%8d/" target="_blank">小林家的白渃</a>发布的文章<sup id="fnref:1"><a href="#fn:1">[1]</a></sup>，根据他的测试，Windows 客户机的内存性能损失是因为 CPU 类型设为 <code>host</code> 的原因。我自己按照了类似的流程做了测试，不过得出的结论略有不同，本文为测试结果的记录。</p>
+
+<h2 id="test">测试</h2>
+<p>根据小林家的白渃的测试结果，Windows 客户机内存性能下降的原因是 <code>host</code> 提供的某些 CPU flag 可能触发了 Windows 的安全机制，导致性能下降，因此我也是从 CPU flag 上开始着手。</p>
+
+<h3 id="method">测试方法</h3>
+<p>我使用另外一台 Linux 的客户机来获得对应 CPU 类型提供的 flag，使用以下指令取得。</p>
+
+<pre><code>$ lscpu | grep Flags | sed -e 's/Flags:                                //g' | tr ' ' '\n' | sort > host-flags</code></pre>
+
+<p>这样只要 <code>diff</code> 就可以快速得知不同 CPU 类型对支持 flag 的区别：</p>
+
 <pre><code>$ diff haswell-notsx-flags haswell-notsx-IBRS-flags
 24a25,26
-&gt; ibpb
-&gt; ibrs</code></pre>
+> ibpb
+> ibrs</code></pre>
 
-<h4>修改 PVE 提供的 CPU flag</h4>
-<p>编辑 <code>/etc/qemu-server/&lt;id&gt;.conf</code>，加上 <code>args</code> 这一行。host 代表使用的 CPU model，后面的 +、- 为在此 model 上添加或移除的 CPU flag。加上 <code>args: -cpu</code> 后会覆盖掉 cpu 设定的部分，使用 <code>qm showcmd &lt;id&gt; --pretty</code> 来查看 QEMU 启动时的参数，args 的参数会被加在最后，覆盖前面设定的参数。</p>
+<h3 id="modify-flags">修改 PVE 提供的 CPU flag</h3>
+<p>编辑 <code>/etc/qemu-server/&lt;id&gt;.conf</code>，加上 <code>args</code> 这一行。<code>host</code> 代表使用的 CPU 模型，后面的 <code>+</code>、<code>-</code> 为在此模型上加上或减掉的 CPU flag。加上 <code>args: -cpu</code> 后会覆盖掉 CPU 设定的部分，使用 <code>qm showcmd &lt;id&gt; --pretty</code> 来查看 QEMU 启动时的参数，<code>args</code> 的参数会被加在最后覆盖前面设定的参数。</p>
+
 <pre><code>args: -cpu host,-arch-capabilities,-flush-l1d,-pdcm,-pdpe1gb,-ss,-ssbd,-stibp,-tsc_adjust,-umip,-vmx,-vnmi</code></pre>
-<p>可使用的 flag 可以在 <a href="https://qemu-project.gitlab.io/qemu/system/qemu-cpu-models.html" target="_blank">QEMU 文档</a><sup><a href="#fn2">[2]</a></sup> 中找到。</p>
 
-<h2>结果</h2>
-<p>我使用的 CPU 为 2690v3，为 Haswell 架构。经过测试能使用的 CPU model 为 Haswell-noTSX 和 Haswell-noTSX-IBRS，无法使用 Haswell 和 Haswell-IBRS，推测是 Xeon 缺少消费级的部分指令集。其中 Haswell-noTSX 和 Haswell-noTSX-IBRS 的区别为后者多了两个和 IBRS 相关的 flag，更接近 host 的 flag，因此主要是用这个 model 和 host 进行测试。</p>
+<p>可使用的 flag 可以在 <a href="https://qemu-project.gitlab.io/qemu/system/qemu-cpu-models.html" target="_blank">QEMU 文档</a><sup id="fnref:2"><a href="#fn:2">[2]</a></sup>中找到。</p>
 
-<p>首先先测试基本 model 的内存性能对比：</p>
-<p class="img-caption">左上：host，中上：haswell-noTSX，右上：haswell-noTSX-IBRS<br>
-左下：max，右下：x86-64-v2-aes</p>
-<p>可以看到 max 和 host 都有内存性能的问题。</p>
+<h2 id="results">结果</h2>
+<p>我使用的 CPU 为 E5-2690 v3，为 Haswell 架构。经过测试能使用的 CPU 模型为 <code>Haswell-noTSX</code> 和 <code>Haswell-noTSX-IBRS</code>，无法使用 <code>Haswell</code> 和 <code>Haswell-IBRS</code>，推测是 Xeon 缺少消费级的一部分指令集。其中 <code>Haswell-noTSX</code> 和 <code>Haswell-noTSX-IBRS</code> 的区别为后者多了两个和 IBRS 相关的 flag，更接近 <code>host</code> 的 flag，因此主要是用这个模型和 <code>host</code> 进行测试。</p>
+
+<p>首先测试基本模型的内存性能对比：</p>
+
+<div class="img-group">
+  <img src="img/proxmox-cpu/host.png" alt="host CPU 类型内存性能测试">
+  <img src="img/proxmox-cpu/haswell-notsx.png" alt="haswell-noTSX CPU 类型内存性能测试">
+  <img src="img/proxmox-cpu/haswell-notsx-IRBS.png" alt="haswell-noTSX-IBRS CPU 类型内存性能测试">
+</div>
+<p class="img-caption">左上：host &nbsp;|&nbsp; 中上：haswell-noTSX &nbsp;|&nbsp; 右上：haswell-noTSX-IBRS</p>
+
+<div class="img-group two-col">
+  <img src="img/proxmox-cpu/max.png" alt="max CPU 类型内存性能测试">
+  <img src="img/proxmox-cpu/x86-64-v2-aes.png" alt="x86-64-v2-aes CPU 类型内存性能测试">
+</div>
+<p class="img-caption">左下：max &nbsp;|&nbsp; 右下：x86-64-v2-aes</p>
+
+<p>可以看到 <code>max</code> 和 <code>host</code> 都有内存性能的问题。</p>
 
 <hr>
 
-<p>在他的文章总结中认为是 md-clear 和 flush-l1d 这两个 flag 导致操作系统启动漏洞修补、影响性能，因此直接测试 host 在分别减去这两个 flag 后有没有影响：</p>
-<p class="img-caption">左：无 md-clear flag，右：无 flush-l1d flag</p>
-<p>可以看到内存性能还是有问题。</p>
+<p>在原文作者的总结中，认为是 <code>md-clear</code> 和 <code>flush-l1d</code> 这两个 flag 导致操作系统启动漏洞修补从而影响性能。因此直接测试 <code>host</code> 在分别减去这两个 flag 后有没有影响：</p>
+
+<div class="img-group two-col">
+  <img src="img/proxmox-cpu/host-no-md-clear.png" alt="host 去掉 md-clear flag 内存性能测试">
+  <img src="img/proxmox-cpu/host-no-flush-l1d.png" alt="host 去掉 flush-l1d flag 内存性能测试">
+</div>
+<p class="img-caption">左：无 md-clear flag &nbsp;|&nbsp; 右：无 flush-l1d flag</p>
+
+<p>可以看到内存性能还是有问题的。</p>
 
 <hr>
 
-<p>直接测试 host 减去所有比 haswell-noTSX-IBRS 多的 flag，以及把 haswell-noTSX-IBRS 加上所有能加的 flag。</p>
+<p>直接测试 <code>host</code> 减去所有比 <code>haswell-noTSX-IBRS</code> 多的 flag，以及把 <code>haswell-noTSX-IBRS</code> 加上所有能加的 flag。</p>
 
-<p>host 减去所有能减掉的 flag 后，只比 haswell-noTSX-IBRS 多三个 flag：</p>
+<p><code>host</code> 减去所有能减掉的 flag 后，只比 <code>haswell-noTSX-IBRS</code> 多三个 flag：</p>
+
 <pre><code>5d4
 &lt; arch_perfmon
 54d52
@@ -140,21 +348,29 @@
 60d57
 &lt; stibp</code></pre>
 
-<p>haswell-noTSX-IBRS 加上所有能加的 flag 后，只比 host 少两个 flag：</p>
+<p><code>haswell-noTSX-IBRS</code> 加上所有能加的 flag 后，只比 <code>host</code> 少 2 个 flag：</p>
+
 <pre><code>5a6
 &gt; arch_perfmon
 47a49
 &gt; pdcm</code></pre>
 
-<p class="img-caption">左：host 减去所有能减的 flag，右：haswell-noTSX-IBRS 加上所有能加的 flag</p>
+<div class="img-group two-col">
+  <img src="img/proxmox-cpu/host-no-every.png" alt="host 减去所有能减的 flag">
+  <img src="img/proxmox-cpu/haswell-notsx-IRBS-plus-every.png" alt="haswell-noTSX-IBRS 加上所有能加的 flag">
+</div>
+<p class="img-caption">左：host 减去所有能减的 flag &nbsp;|&nbsp; 右：haswell-noTSX-IBRS 加上所有能加的 flag</p>
 
-<p>可以看到 host 的 model 内存性能还是有问题，haswell-noTSX-IBRS 加上所有 flag 后还是没有问题。因此我认为可能和 CPU 漏洞没有很大的关系，不然就是和 pdcm 有关（能源管理部分）。</p>
+<p>可以看到 <code>host</code> 模型的内存性能还是有问题的，而 <code>haswell-noTSX-IBRS</code> 加上所有 flag 后还是没有问题。因此作者认为可能和 CPU 漏洞没有很大的关系，不然就是和 <code>pdcm</code> 有关（能源管理部分）。</p>
 
 <hr>
 
-<p>最后我还是使用他文章中提供的解决方法，设定一个自定义的 CPU model，专门用来给 Windows 的虚拟机使用。</p>
+<h3 id="custom-model">自定义 CPU 模型</h3>
+
+<p>最后作者还是使用了原文文章中提供的解决方法——设定一个自定义的 CPU 模型，专门用来给 Windows 的虚拟机使用。</p>
 
 <p>编辑 <code>/etc/pve/virtual-guest/cpu-models.conf</code>：</p>
+
 <pre><code>cpu-model: windows-host
     flags +arch-capabilities;+flush-l1d;+md-clear;+pdcm;+pdpe1gb;+ss;+ssbd;+stibp;+tsc_adjust;+umip;+vmx
     phys-bits host
@@ -162,14 +378,22 @@
     hv-vendor-id proxmox
     reported-model Haswell-noTSX-IBRS</code></pre>
 
-<p>性能测试如下，没什么大问题。</p>
+<p>性能测试如下，没什么大问题：</p>
 
-<h2>参考</h2>
+<img class="img-full" src="img/proxmox-cpu/custom.png" alt="自定义 windows-host CPU 模型内存性能测试">
+
+<h2 id="references">参考</h2>
+
 <div class="footnotes">
 <ol>
-<li id="fn1"><a href="https://blog.bairuo.net/2025/03/03/%e5%85%b3%e4%ba%8eproxmox%e4%b8%adcpu%e7%b1%bb%e5%9e%8b%e5%af%b9windows%e5%ae%a2%e6%88%b7%e6%9c%ba%e7%9a%84%e6%80%a7%e8%83%bd%e5%bd%b1%e5%93%8d/" target="_blank">关于Proxmox中CPU类型对Windows客户机的性能影响 - 小林家的白渃</a></li>
-<li id="fn2"><a href="https://qemu-project.gitlab.io/qemu/system/qemu-cpu-models.html" target="_blank">QEMU / KVM CPU model configuration — QEMU documentation</a></li>
+<li id="fn:1"><a href="https://blog.bairuo.net/2025/03/03/%e5%85%b3%e4%ba%8eproxmox%e4%b8%adcpu%e7%b1%bb%e5%9e%8b%e5%af%b9windows%e5%ae%a2%e6%88%b7%e6%9c%ba%e7%9a%84%e6%80%a7%e8%83%bd%e5%bd%b1%e5%93%8d/" target="_blank">关于 Proxmox 中 CPU 类型对 Windows 客户机的性能影响 — 小林家的白渃</a> <a href="#fnref:1">↩</a></li>
+<li id="fn:2"><a href="https://qemu-project.gitlab.io/qemu/system/qemu-cpu-models.html" target="_blank">QEMU / KVM CPU model configuration — QEMU documentation</a> <a href="#fnref:2">↩</a></li>
 </ol>
+</div>
+
+<div class="footer">
+  <p>原文作者：<a href="https://www.zenwen.tw/" target="_blank">Zen Wen</a> &nbsp;|&nbsp; 许可协议：<a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank">CC BY-SA 4.0</a></p>
+  <p>本文翻译由 AI 辅助完成，仅供参考</p>
 </div>
 
 </body>
