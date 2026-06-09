@@ -29,6 +29,7 @@
 
 | 文档 | 大小 |
 |------|------|
+| [修补 NVIDIA 驱动和 vLLM，在消费级 GPU 上启用 P2P](nvidia-p2p-consumer-gpu-翻译.html) | 28 KB |
 | [在双 RTX 3090 上本地运行 Qwen3.6 27B —— vLLM v0.19 实战](running-qwen36-27b-dual-rtx-3090-vllm-v019.html) | 23 KB |
 | [在双 RTX 3090 上用 vLLM v0.19 本地运行 Qwen3.6 27B](qwen36-27b-dual-rtx-3090-vllm-v019.html) | 20 KB |
 | [从 30 到 60 Tokens/秒：如何让 vLLM 在双 RTX 3090 上跑起来](从30到60%20Tokens每秒-如何在双RTX%203090上运行vLLM_v2.html) | 221 KB |

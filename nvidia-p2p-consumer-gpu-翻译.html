@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>修补 NVIDIA 驱动和 vLLM，在消费级 GPU 上启用 P2P（中文翻译）</title>
+<style>
+
+  :root {
+    --bg: #0d0d0d;
+    --surface: #1a1a1a;
+    --border: #2a2a2a;
+    --text: #e8e8ed;
+    --text-muted: #888;
+    --accent: #f5c842;
+    --code-bg: #141414;
+    --link: #7eb8f5;
+    --green: #3fb950;
+    --badge-bg: #090909;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem 4rem;
+  }
+  a { color: var(--link); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  h1, h2, h3 { color: var(--text); margin-top: 2rem; margin-bottom: 1rem; }
+  h1 { font-size: 1.8rem; border-bottom: 1px solid var(--border); padding-bottom: 0.5rem; }
+  h2 { font-size: 1.4rem; }
+  h3 { font-size: 1.15rem; color: var(--accent); }
+  p { margin-bottom: 1rem; }
+  hr { border: none; border-top: 1px solid var(--border); margin: 2rem 0; }
+  img.banner { width: 85%; max-width: 700px; display: block; margin: 0 auto 1rem; border-radius: 8px; }
+  .badges { text-align: center; margin-bottom: 1.5rem; }
+  .badges img { margin: 0.25rem; }
+  .tagline {
+    text-align: center;
+    font-size: 1.05rem;
+    color: var(--text-muted);
+    margin-bottom: 2rem;
+  }
+  .tagline strong { color: var(--accent); }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1rem 0 1.5rem;
+    font-size: 0.9rem;
+    background: var(--surface);
+    border-radius: 6px;
+    overflow: hidden;
+  }
+  table.models-table td:first-child {
+    width: 150px;
+    min-width: 110px;
+    max-width: 150px;
+  }
+  th, td {
+    padding: 0.55rem 0.75rem;
+    border: 1px solid var(--border);
+    text-align: left;
+  }
+  th {
+    background: #222;
+    font-weight: 600;
+    color: var(--accent);
+    text-align: center;
+  }
+  td:last-child { text-align: center; font-weight: 600; }
+  code {
+    background: var(--code-bg);
+    padding: 0.15em 0.4em;
+    border-radius: 4px;
+    font-size: 0.88em;
+    font-family: "JetBrains Mono", "Fira Code", "Cascadia Code", Consolas, monospace;
+    color: #f0883e;
+  }
+  pre {
+    background: #1e1e2e;
+    border: 1px solid #3a3a4a;
+    border-left: 3px solid var(--accent);
+    border-radius: 6px;
+    padding: 1rem 1.2rem;
+    overflow-x: auto;
+    margin: 1rem 0 1.5rem;
+    font-size: 0.95rem;
+    line-height: 1.6;
+  }
+  pre code {
+    background: none;
+    padding: 0;
+    color: #cdd6f4;
+  }
+  ul, ol { margin: 0.5rem 0 1rem 1.5rem; }
+  li { margin-bottom: 0.35rem; }
+  blockquote {
+    border-left: 3px solid var(--accent);
+    padding: 0.5rem 1rem;
+    margin: 1rem 0;
+    background: rgba(245, 200, 66, 0.05);
+    border-radius: 0 6px 6px 0;
+  }
+  .cards {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 1.5rem;
+    margin: 1.5rem 0;
+  }
+  .cards img {
+    max-width: 46%;
+    min-width: 280px;
+    border-radius: 8px;
+  }
+  .repo-tree {
+    font-family: "JetBrains Mono", "Fira Code", Consolas, monospace;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    background: var(--code-bg);
+    padding: 1rem;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    white-space: pre;
+    line-height: 1.8;
+    margin: 1rem 0;
+  }
+  .roadmap {
+    font-family: "JetBrains Mono", "Fira Code", Consolas, monospace;
+    font-size: 0.85rem;
+    background: var(--code-bg);
+    padding: 1rem;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    white-space: pre;
+    line-height: 1.8;
+    margin: 1rem 0;
+  }
+  .footer {
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    margin-top: 3rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border);
+  }
+  .section-links {
+    margin: 0.5rem 0 1rem;
+    font-size: 0.9rem;
+    color: var(--text-muted);
+  }
+  .section-links a { margin-right: 1rem; }
+  strong { color: var(--text); }
+  .highlight { color: var(--green); font-weight: 600; }
+
+/* TOC Navigation */
+#toc-toggle {
+  position: fixed;
+  top: 1.2rem;
+  left: 1.2rem;
+  z-index: 1001;
+  width: 36px;
+  height: 36px;
+  background: rgba(245, 200, 66, 0.12);
+  border: 1px solid rgba(245, 200, 66, 0.35);
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 0;
+  transition: background 0.2s;
+}
+#toc-toggle:hover {
+  background: rgba(245, 200, 66, 0.22);
+  border-color: rgba(245, 200, 66, 0.5);
+}
+#toc-toggle span {
+  display: block;
+  width: 18px;
+  height: 2px;
+  background: #f5c842;
+  border-radius: 1px;
+  transition: transform 0.3s, opacity 0.3s;
+}
+#toc-toggle.open span:nth-child(1) {
+  transform: translateY(6px) rotate(45deg);
+}
+#toc-toggle.open span:nth-child(2) {
+  opacity: 0;
+}
+#toc-toggle.open span:nth-child(3) {
+  transform: translateY(-6px) rotate(-45deg);
+}
+
+#toc-nav {
+  position: fixed;
+  top: 0;
+  left: -320px;
+  width: 300px;
+  height: 100vh;
+  background: #111;
+  border-right: 1px solid #2a2a2a;
+  z-index: 1000;
+  padding: 4.5rem 1.2rem 1.5rem;
+  overflow-y: auto;
+  transition: left 0.3s ease;
+  box-shadow: none;
+}
+#toc-nav.open {
+  left: 0;
+  box-shadow: 4px 0 20px rgba(0,0,0,0.5);
+}
+.toc-header {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #888;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid #2a2a2a;
+}
+#toc-nav ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+#toc-nav li {
+  margin: 0;
+}
+.toc-link {
+  display: block;
+  padding: 0.45rem 0.75rem;
+  color: #c0c0c5;
+  text-decoration: none;
+  font-size: 0.9rem;
+  border-radius: 4px;
+  transition: background 0.15s, color 0.15s;
+  border-left: 2px solid transparent;
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+.toc-link:hover {
+  background: rgba(245, 200, 66, 0.08);
+  color: #f5c842;
+  border-left-color: #f5c842;
+}
+/* Overlay when TOC is open */
+#toc-nav.open ~ .toc-overlay {
+  display: block;
+}
+.toc-overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.4);
+  z-index: 999;
+  cursor: pointer;
+}
+/* Smooth scroll */
+html {
+  
+}
+/* Offset for fixed nav scroll target */
+h2[id] {
+  scroll-margin-top: 1rem;
+}
+
+
+</style>
+</head>
+<body>
+
+<nav style="padding:12px 0;border-bottom:1px solid #21262d;margin-bottom:1.5rem">
+<a href="index.html" style="color:#58a6ff;text-decoration:none;font-size:0.9rem">&larr; 返回文章列表</a>
+</nav>
+
+<!-- TOC Toggle Button -->
+<button id="toc-toggle" onclick="document.getElementById(&#39;toc-nav&#39;).classList.toggle(&#39;open&#39;)" aria-label="切换导航目录">
+  <span></span>
+  <span></span>
+  <span></span>
+</button>
+
+<!-- TOC Navigation Panel -->
+<nav id="toc-nav">
+  <div class="toc-header">导航目录</div>
+  <ul>
+<li><a href="#why-p2p-matters" class="toc-link">为什么 P2P 很重要</a></li>
+<li><a href="#the-patch" class="toc-link">补丁</a></li>
+<li><a href="#prerequisites" class="toc-link">前置条件</a></li>
+<li><a href="#installing-the-patched-drivers" class="toc-link">安装修补后的驱动</a></li>
+<li><a href="#verify-p2p-is-working" class="toc-link">验证 P2P 是否工作</a></li>
+<li><a href="#patching-vllm" class="toc-link">修补 vLLM</a></li>
+<li><a href="#tuning-vllms-fused-moe-kernel" class="toc-link">调优 vLLM 的 Fused MoE 内核</a></li>
+<li><a href="#what-is-fused_moe" class="toc-link">什么是 fused_moe？</a></li>
+<li><a href="#why-tune-it" class="toc-link">为什么要调优？</a></li>
+<li><a href="#generating-a-tuned-config" class="toc-link">生成调优配置</a></li>
+<li><a href="#using-the-tuned-config" class="toc-link">使用调优配置</a></li>
+<li><a href="#results" class="toc-link">结果</a></li>
+<li><a href="#configuration" class="toc-link">配置</a></li>
+<li><a href="#vllm" class="toc-link">vLLM</a></li>
+<li><a href="#dockerfile" class="toc-link">Dockerfile</a></li>
+<li><a href="#docker-compose" class="toc-link">Docker Compose</a></li>
+<li><a href="#vllm-expert-parallelism" class="toc-link">vLLM Expert Parallelism</a></li>
+<li><a href="#llamacpp" class="toc-link">llama.cpp</a></li>
+  </ul>
+</nav>
+<div class="toc-overlay" onclick="document.getElementById(&#39;toc-nav&#39;).classList.remove(&#39;open&#39;)"></div>
+
+<article class="article-body">
+<h1>Patching NVIDIA&#39;s driver and vLLM to enable P2P on consumer GPUs</h1>
+<p class="meta-line">作者：Sam McLeod / 发布时间：2026-02-25 / 阅读时间：10 分钟 / <a href="https://smcleod.net/2026/02/patching-nvidias-driver-and-vllm-to-enable-p2p-on-consumer-gpus/" class="source">原文链接</a></p>
+
+<p>NVIDIA 人为地将点对点（P2P）GPU 通信限制在其企业级显卡上。事实证明，这只是一个软件层面的限制，而非硬件层面的。我修补了我的驱动以移除这一限制，并改造了 vLLM 来利用它，在双 RTX 3090 上运行 Qwen 3.5 35b 时获得了 10-30% 的吞吐量提升。</p>
+
+<h2 id="why-p2p-matters">为什么 P2P 很重要</h2>
+<p>当你使用 tensor parallelism 在多块 GPU 上运行模型时，GPU 之间需要持续交换数据。没有 P2P 的情况下，所有 GPU 间的通信都要经过 CPU 和系统内存——这样一个往返过程不仅增加了延迟，还低效地消耗了 PCIe 带宽。启用 P2P 后，GPU 可以通过 DMA 直接读写彼此的内存，完全省去了中间环节。</p>
+<p>尽管 NVIDIA 对其消费级 90 系列显卡（RTX 3090、4090、5090）收取溢价，却在驱动中屏蔽了这一功能。以我的经验，硬件本身完全支持——这纯粹是产品分级的商业决策，旨在把用户推向启用了 P2P 的专业级产品线。</p>
+
+<h2 id="the-patch">补丁</h2>
+<p>社区中有一个 NVIDIA 开源 GPU 内核模块的分支，专门用于移除这一限制：<a href="https://github.com/aikitoria/open-gpu-kernel-modules">aikitoria/open-gpu-kernel-modules</a>。</p>
+<p>该补丁修改内核驱动，强制在原本不应启用该功能的 GPU 上开启 BAR1 P2P 模式。数据传输随后通过 DMA 直接写入另一块 GPU 的物理地址来完成。</p>
+
+<h3 id="prerequisites">前置条件</h3>
+<p>IOMMU 必须配置为直通（passthrough）模式。否则，GPU 之间的 DMA 传输会失败。请注意，直通模式会降低 IOMMU 的隔离保障——如果你在原本高安全性的环境中运行不可信的软件或设备，在操作前请理解这一权衡。</p>
+<p>编辑 <code>/etc/default/grub</code>，在 <code>GRUB_CMDLINE_LINUX</code> 中添加 <code>amd_iommu=on iommu=pt</code>（Intel 平台则为 <code>intel_iommu=on iommu=pt</code>）：</p>
+<pre><code class="language-bash">GRUB_CMDLINE_LINUX="rd.lvm.lv=fedora/root amd_pstate=guided nvidia-drm.modeset=1 amd_iommu=on iommu=pt"</code></pre>
+<p>然后重新生成 grub 并重启：</p>
+<pre><code class="language-bash"># Fedora:
+sudo grub2-mkconfig -o /boot/grub2/grub.cfg
+sudo dracut --regenerate-all --force
+
+# Debian-based distros:
+# sudo update-grub</code></pre>
+
+<h3 id="installing-the-patched-drivers">安装修补后的驱动</h3>
+<ol>
+<li>查看 <a href="https://github.com/aikitoria/open-gpu-kernel-modules">aikitoria/open-gpu-kernel-modules</a> 中最新的分支，找到最新的受支持修补驱动版本（本文撰写时为 <code>590.48.01</code>）</li>
+<li>下载对应版本的 <a href="https://www.nvidia.com/en-us/drivers/">NVIDIA 驱动</a></li>
+<li>安装驱动时选择开源驱动（以便我们可以用补丁对其进行修改）</li>
+<li>克隆仓库并运行 <code>./install.sh</code>，完成后会显示 <code>nvidia-smi</code> 的输出</li>
+<li>重启</li>
+</ol>
+
+<h3 id="verify-p2p-is-working">验证 P2P 是否工作</h3>
+<pre><code>nvidia-smi topo -p2p r
+        GPU0    GPU1
+ GPU0   X       OK
+ GPU1   OK      X
+Legend:
+  X    = Self
+  OK   = Status Ok
+  CNS  = Chipset not supported
+  GNS  = GPU not supported
+  TNS  = Topology not supported
+  NS   = Not supported
+  U    = Unknown</code></pre>
+<p>如果你看到 GPU 之间显示为 <code>OK</code> 而非 <code>NS</code>，说明 P2P 已激活。</p>
+
+<hr>
+
+<h2 id="patching-vllm">修补 vLLM</h2>
+<p>我日常使用的 LLM 推理服务器是 llama.cpp，它比 vLLM 更友好、更灵活。然而 vLLM 的性能通常更优，因此对于特别繁重或对性能敏感的工作负载，我有时会切换到启动 vLLM。</p>
+<p>vLLM 对 tensor parallelism 有非常高效的实现，尤其对于 MoE 模型，因此对于需要这些特性的工作负载，只要你愿意忍受它的一些痛点，它通常是最好的选择。</p>
+<p>vLLM 有不少缺点：</p>
+<ul>
+<li>部署配置更复杂</li>
+<li>每个模型都需要各自的一套配置参数</li>
+<li>其拓扑约束在 GPU 数量为奇数的环境下可能不是最优的</li>
+<li>对量化格式的支持有限，例如 GGUF。它支持 AWQ 量化，但 AWQ 不那么常见，尤其在 4-bit 和 8-bit（dynamic）精度以外的位宽上</li>
+<li>其 vRAM → RAM 卸载功能是实验性的，不如 llama.cpp 那样稳健和灵活，因此仅适合能完全装入 GPU 内存的模型</li>
+<li>vLLM 的 OpenAI 兼容 API 服务器需要在启动时设置静态配置。这意味着模型必须在服务器启动时加载（不支持热切换 / 动态加载），且模型空闲时不会释放 vRAM。<em>注意：这可以通过结合 MostlyGeek 出色的 <a href="https://github.com/mostlygeek/llama-swap">llama-swap</a> 项目来解决，但那超出了本文的范围。</em></li>
+</ul>
+<p>最致命的是——vLLM 有一个设备能力检查，会拒绝在消费级 GPU 上使用 P2P——即使这些 GPU 是兼容的（真是贴心呢，不是吗？）。即使驱动补丁已经应用且 P2P 可以正常工作，vLLM 仍然拒绝使用它。</p>
+<p>事实证明，这个检查位于 <code>vllm/platforms/cuda.py</code>，它查询 pynvml 获取 P2P 支持信息——而 pynvml 仍然将该卡报告为不支持，因为 vLLM 使用的用户态库中有硬编码的逻辑，因此——它不知道我们的驱动中已添加的支持。</p>
+<p>我用一行命令绕过了这个检查，直接加在我 vLLM 的 Dockerfile 里：</p>
+<pre><code class="language-dockerfile">RUN sed -i &#39;s/handles = \\[pynvml.nvmlDeviceGetHandleByIndex(i) for i in physical_device_ids\\]/return True/g&#39; \\
+    /usr/local/lib/python3.12/dist-packages/vllm/platforms/cuda.py</code></pre>
+<p>这是一个粗糙的黑客做法——它短路了 P2P 检查，使其始终返回 <code>True</code>。它有效，但如果你不只是用于个人推理服务器，你会想要更精确地处理这个问题。</p>
+
+<hr>
+
+<h2 id="tuning-vllms-fused-moe-kernel">调优 vLLM 的 Fused MoE 内核</h2>
+
+<h3 id="what-is-fused_moe">什么是 fused_moe？</h3>
+<p>MoE 模型（如 Qwen 3.5）将每个 token 路由到一组「专家」子网络中。在推理时，这意味着每次前向传播都要运行一批矩阵乘法——每个活跃专家一个。朴素的做法是将这些作为独立的 GEMM 运算来执行，但 vLLM 将它们融合成一个名为 <code>fused_moe</code> 的单一 Triton 内核。这个内核将路由权重应用、矩阵乘法和激活函数合并为一次 GPU 调度，避免了分别启动大量小型内核的开销。</p>
+<p>这个内核的性能在很大程度上取决于其工作如何在 GPU 的流多处理器（SM）之间进行分块（tiling）。参数如块大小（<code>BLOCK_SIZE_M</code>、<code>BLOCK_SIZE_N</code>、<code>BLOCK_SIZE_K</code>）、warp 数量、pipeline 阶段数以及 group size 等，都会影响内核如何高效地使用 GPU 的计算单元、共享内存和 L2 缓存。</p>
+
+<h3 id="why-tune-it">为什么要调优？</h3>
+<p>vLLM 附带了针对数据中心 GPU（A100、H100、B200 等）的预调优配置。像 RTX 3090 这样的消费级显卡不在其中。没有调优配置的情况下，vLLM 会回退到启发式默认值，并记录一条警告：</p>
+<pre><code>WARNING ... Using default MoE config. Performance might be sub-optimal!</code></pre>
+<p>默认值偏保守，留下了性能冗余。RTX 3090 的 Ampere 架构在 SM 数量、共享内存大小和缓存层级方面，与这些默认值所针对的数据中心卡有所不同。</p>
+
+<h3 id="generating-a-tuned-config">生成调优配置</h3>
+<p>vLLM 内置了一个基准测试脚本，可以在 Triton 内核参数空间中搜索并找到你特定硬件最快的配置。然而它的运行时间非常长（数小时），因为搜索空间巨大（每个 batch size 约 ~1900 种配置）。</p>
+<p>我发现了 <a href="https://github.com/MissionSquad/vllm-moe-configs">MissionSquad/vllm-moe-configs</a> 仓库，它提供了一个极其有用的补丁，通过将搜索空间从 ~1900 种配置缩小到可管理的数量，使这个调优工具在单 GPU 消费级设置上变得可用，同时保留了大部分性能收益。</p>
+<p>输出是一个以专家数量、中间尺寸和设备命名的 JSON 文件——例如 <code>E=48,N=768,device_name=NVIDIA_GeForce_RTX_3090.json</code>。每个条目将一个 batch size 映射到最优的块维度、warp 数和 pipeline 阶段：</p>
+<pre><code class="language-json">{
+  "triton_version": "3.5.1",
+  "1": {
+    "BLOCK_SIZE_M": 64,
+    "BLOCK_SIZE_N": 128,
+    "BLOCK_SIZE_K": 128,
+    "GROUP_SIZE_M": 32,
+    "num_warps": 8,
+    "num_stages": 3
+  },
+  "16": {
+    "BLOCK_SIZE_M": 64,
+    "BLOCK_SIZE_N": 128,
+    "BLOCK_SIZE_K": 128,
+    "GROUP_SIZE_M": 16,
+    "num_warps": 8,
+    "num_stages": 3
+  },
+  ...
+}</code></pre>
+<p>完整配置覆盖了从 1 到 4096 的 batch size。我已将我的配置发布为 <a href="https://gist.github.com/sammcj/e45c2ad08a4191f0fbbaa1b842a5a778">gist</a>。</p>
+
+<h3 id="using-the-tuned-config">使用调优配置</h3>
+<p>将 JSON 文件放入 vLLM 的配置目录，或通过 <code>VLLM_TUNED_CONFIG_FOLDER</code> 环境变量指向它：</p>
+<pre><code class="language-bash">VLLM_TUNED_CONFIG_FOLDER=/path/to/configs vllm serve ...</code></pre>
+<p>启动时，vLLM 不应再打印 「Using default MoE config」 的警告。调优参数确保 Triton 内核以匹配 RTX 3090 实际能高效执行的块大小和 pipeline 深度进行编译，而不是依赖保守的猜测。</p>
+
+<h2 id="results">结果</h2>
+<p>在双 RTX 3090 上运行 Qwen 3.5 35b-a3b（一个 MoE 模型，每个 token 约 30 亿活跃参数），上下文长度为 64k：</p>
+
+<table>
+<thead><tr><th>设置</th><th>值</th><th>无 P2P</th></tr></thead>
+<tbody>
+<tr><td>vLLM 版本</td><td></td><td></td></tr>
+<tr><td>llama.cpp 版本</td><td></td><td></td></tr>
+<tr><td>模型</td><td>Qwen 3.5 35b-a3b</td><td></td></tr>
+<tr><td>上下文长度</td><td>64k</td><td></td></tr>
+<tr><td>vLLM 量化</td><td>4-bit（Dynamic）AWQ</td><td></td></tr>
+<tr><td>llama.cpp 量化</td><td>Unsloth UD-Q4_K_XL</td><td></td></tr>
+<tr><td>推理引擎</td><td>vLLM</td><td></td></tr>
+<tr><td>GPU</td><td>2x RTX 3090</td><td></td></tr>
+<tr><td>CPU</td><td>Ryzen 9 9900X 12 核</td><td></td></tr>
+<tr><td>内存</td><td>192GB DDR5 3600 MT/s</td><td></td></tr>
+<tr><td>P2P</td><td>已启用</td><td>已禁用</td></tr>
+<tr><td>Fused MoE 配置</td><td>已调优</td><td>已调优</td></tr>
+</tbody>
+</table>
+
+<table>
+<thead><tr><th>服务器/模型</th><th>值</th><th>无 P2P</th></tr></thead>
+<tbody>
+<tr><td><strong>llama.cpp / 35b-a3b</strong></td><td><strong>110-130 tk/s</strong></td><td>未测试</td></tr>
+<tr><td><strong>vLLM / 35b-a3b</strong></td><td><strong>90-197 tk/s</strong></td><td>~35-65 tk/s</td></tr>
+<tr><td><strong>llama.cpp / 27b</strong></td><td><strong>30-70 tk/s</strong></td><td>未测试</td></tr>
+<tr><td><strong>vLLM / 27b</strong></td><td><strong>32-195 tk/s</strong></td><td>~32-70 tk/s</td></tr>
+</tbody>
+</table>
+
+<p>相比未打 P2P 补丁且未做 MoE 调优的相同配置，提升了 10-30%，具体幅度取决于工作负载。增益随 batch size、序列长度以及模型实际需要的 GPU 间通信量而变化。MoE 架构（如 Qwen 3.5）受益尤为明显，因为专家路由在 tensor parallelism 推理期间产生了更多跨 GPU 流量，而 <code>fused_moe</code> 内核处于每个生成 token 的关键路径上。</p>
+<p><em>注意：我很想更详细地拆解性能提升，包括不包含 Fused MoE 调优的对比——或许等时间允许时我会更新这篇文章。</em></p>
+
+<h2 id="configuration">配置</h2>
+
+<h3 id="vllm">vLLM</h3>
+
+<h4 id="dockerfile">Dockerfile</h4>
+<pre><code class="language-dockerfile">FROM vllm/vllm-openai:cu130-nightly
+
+ENV LD_LIBRARY_PATH=/usr/lib64:/usr/local/nvidia/lib64:/usr/local/cuda/lib64:/usr/local/nvidia/lib:/lib/x86_64-linux-gnu:/usr/local/cuda/lib64
+ENV CUDA_VERSION=130
+ENV UV_TORCH_BACKEND=cu130
+
+# 安装最新版本的 transformers、numba 和 vLLM
+RUN uv pip install --system -U https://github.com/huggingface/transformers/archive/refs/heads/main.zip
+RUN uv pip install --system --force-reinstall numba
+RUN uv pip install --system -U vllm --torch-backend=auto --extra-index-url https://wheels.vllm.ai/nightly
+
+# 修复 RTX 3090 在通过修补驱动启用 P2P 后的问题
+RUN sed -i &#39;s/handles = \\[pynvml.nvmlDeviceGetHandleByIndex(i) for i in physical_device_ids\\]/return True/g&#39; /usr/local/lib/python3.12/dist-packages/vllm/platforms/cuda.py
+
+EXPOSE 8000
+ENTRYPOINT ["python3", "-m", "vllm.entrypoints.openai.api_server"]</code></pre>
+
+<h4 id="docker-compose">Docker Compose</h4>
+<pre><code class="language-yaml">services:
+  &amp;name vllm:
+    container_name: *name
+    hostname: *name
+    profiles:
+      - *name
+    build:
+      context: ./vllm  # Dockerfile 如下
+    ipc: host
+    environment:
+      # NVIDIA 设置
+      NVIDIA_VISIBLE_DEVICES: all
+      NVIDIA_DRIVER_CAPABILITIES: all
+      NVIDIA_DISABLE_REQUIRE: &#39;1&#39;
+      CUDA_VISIBLE_DEVICES: &#39;0,1&#39;
+      CUDA_DEVICE_ORDER: FASTEST_FIRST
+      CUDA_DEVICE_MAX_CONNECTIONS: 10
+      CUDA_CACHE_MAXSIZE: 4294967296  # 4GB
+      CUDA_SCALE_LAUNCH_QUEUES: &#39;4x&#39;
+      NCCL_CUMEM_ENABLE: 0
+      RAY_memory_monitor_refresh_ms: 0
+
+      # https://docs.vllm.ai/en/latest/configuration/env_vars/
+      FLASH_ATTN: 1
+      OMP_NUM_THREADS: 6
+      PYTORCH_ALLOC_CONF: &#39;expandable_segments:False&#39;
+      TENSOR_PARALLEL_SIZE: 2
+      VLLM_CPU_KVCACHE_SPACE: 8  # (gb)
+      VLLM_DO_NOT_TRACK: 1
+      VLLM_ENABLE_CUDAGRAPH_GC: 1
+      VLLM_FLASHINFER_MOE_BACKEND: throughput
+      VLLM_MARLIN_USE_ATOMIC_ADD: 1
+      VLLM_MEMORY_PROFILER_ESTIMATE_CUDAGRAPHS: 1
+      VLLM_TARGET_DEVICE: cuda
+      VLLM_USE_DEEP_GEMM: 0
+      VLLM_USE_FLASHINFER_SAMPLER: &#39;1&#39;
+      VLLM_USE_PRECOMPILED: 1
+
+      VLLM_TUNED_CONFIG_FOLDER: /tuned_configs  # 包含我的 fused MoE 内核配置
+
+    command:
+      - &#39;--served-model-name&#39;
+      - &#39;vLLM&#39;
+      - &#39;--tensor-parallel-size&#39;  # 分配到 2 块 GPU
+      - &#39;2&#39;
+      - "--attention-backend"
+      - "FLASHINFER"
+
+      # 内存优化
+      # https://docs.vllm.ai/en/stable/configuration/optimization.html
+      - &#39;--max-model-len&#39;
+      - &#39;131070&#39;
+      - &#39;--max-num-batched-tokens&#39;
+      - &#39;16384&#39;
+      - &#39;--max-num-seqs&#39;
+      - &#39;8&#39;
+      - &#39;--gpu-memory-utilization&#39;
+      - &#39;0.95&#39;
+      - &#39;--swap-space&#39;
+      - &#39;16&#39;
+      - &#39;--block-size&#39;
+      - &#39;32&#39;
+
+      ## Qwen 3.5 专用设置
+      - &#39;--model&#39;
+      - &#39;cyankiwi/Qwen3.5-35B-A3B-AWQ-4bit&#39;    # 35b-a3b
+      # - &#39;cyankiwi/Qwen3.5-27B-AWQ-BF16-INT4&#39; # 27b - 线性注意力层保持全精度
+      - &#39;--language-model-only&#39;  # 如不需要则禁用视觉
+      - &#39;--tool-call-parser&#39;
+      - &#39;qwen3_coder&#39;
+      - &#39;--reasoning-parser&#39;
+      - &#39;qwen3&#39;
+      - &#39;--enable-auto-tool-choice&#39;
+      - &#39;--speculative-config&#39;  # 使用 MTP（基于模型的 token 预测）的 speculative decoding（草稿）
+      - &#39;{"method":"mtp","num_speculative_tokens":2}&#39;
+      - &#39;--override-generation-config&#39;
+      - &#39;{"temperature": 0.7, "repetition_penalty": 1.0, "top_k": 20}&#39;
+      - &#39;--mamba-cache-mode&#39;
+      - &#39;all&#39;
+
+      - &#39;--enable-prefix-caching&#39;
+      - &#39;--enable-chunked-prefill&#39;
+
+    # - &#39;--enable-expert-parallel&#39; # 仅 MoE 模型，对 27b 模型禁用，注意：目前禁用，详见下文
+
+    runtime: nvidia
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [&#39;compute&#39;, &#39;utility&#39;, &#39;graphics&#39;, &#39;video&#39;]
+            - driver: cdi
+              device_ids:
+                - nvidia.com/gpu=all
+              capabilities: [&#39;compute&#39;, &#39;utility&#39;, &#39;graphics&#39;]
+    volumes:
+      - ./models:/models
+      - ./tuned_configs:/tuned_configs
+    ports:
+      - &#39;8000:8000&#39;</code></pre>
+
+<h4 id="vllm-expert-parallelism">vLLM Expert Parallelism</h4>
+<p>我对 vLLM 的 expert parallelism（EP）功能（<code>--enable-expert-parallel</code>）做了一些测试，但发现它实际上略微降低了性能。</p>
+
+<table>
+<thead><tr><th>指标</th><th>EP 关闭</th><th>EP 开启</th></tr></thead>
+<tbody>
+<tr><td>短请求 tk/s</td><td>82.7</td><td>71.9</td></tr>
+<tr><td>中请求 tk/s</td><td>69.6</td><td>67.7</td></tr>
+<tr><td>长请求 tk/s</td><td>164.9</td><td>168.6</td></tr>
+<tr><td>尾部 tk/s</td><td>39.9</td><td>20.7</td></tr>
+<tr><td>Spec 接受率范围</td><td>76-88%</td><td>70-77%</td></tr>
+<tr><td>KV cache tokens</td><td>232,624</td><td>236,912</td></tr>
+</tbody>
+</table>
+
+<p>开启 EP 带来了略微更多的 KV cache（专家拆分 = 每 GPU 的模型内存更少），但在短/中请求上的吞吐量始终更低，且 speculative decode 的接受率下降。长请求窗口基本持平（168 对 165）。</p>
+<p>我得出的结论是：跨 GPU 的专家路由开销超过了 vRAM 节省所带来的收益，目前我保持禁用。</p>
+
+<h3 id="llamacpp">llama.cpp</h3>
+<p>我使用 <a href="https://github.com/mostlygeek/llama-swap">llama-swap</a> 来热加载 llama.cpp 的模型。我的实际配置使用了一些宏，因此我将相关配置部分粗略编译如下：</p>
+
+<pre><code class="language-yaml">
+models:
+  "qwen3-5-35b-a3b-ud-q4kxl-64k-coding-instruct":
+    ttl: 300  # 5 分钟
+    env:
+      - CUDA_SCALE_LAUNCH_QUEUES=4x
+      - CUDA_CACHE_MAXSIZE=4294967296
+      - GGML_CUDA_GRAPH_OPT=1
+      - LLAMA_SET_ROWS=1
+      - LLAMA_ARG_KV_SPLIT=false
+    cmd: &gt;
+    # 服务器
+      --slots --metrics --props
+      --threads -1 --threads-batch -1 --threads-http -1 --prio-batch 2 --prio 2
+      --flash-attn on --cache-type-k q8_0 --cache-type-v q8_0
+    # 注意：在 https://github.com/ggml-org/llama.cpp/issues/18497 解决之前，不要对 Qwen 3.5 MoE 模型使用 --cache-reuse
+      --no-context-shift --keep -1 --cache-reuse 256
+      --cache-ram -1
+      --kv-unified
+      --no-mmap
+      --jinja
+      --fit on
+
+    # 64k 上下文
+      --ctx-size 65535
+
+    # ngram speculative decoding
+      --spec-type ngram-mod --spec-ngram-size-n 24 --draft-min 48 --draft-max 64
+
+    # qwen 3.5 - 设置为编码模式（instruct，无 thinking）
+      --temp 0.6 --top-k 20 --top-p 0.95 --min-p 0.00 --presence-penalty 0.0 --repeat-penalty 1.0
+      --chat-template-kwargs "{&#34;enable_thinking&#34;: false}"
+
+      --model /models/Qwen3.5-35B-A3B-UD-Q4_K_XL.gguf</code></pre>
+
+<p><em>注意：这些参数不一定是完美的最优调优设置，因为该模型是昨天才发布的，我还没有太多时间进行实验。如果你有更好的参数推荐，<a href="https://smcleod.net/contact/">请告诉我</a>！</em></p>
+
+<hr>
+
+<p>Enjoy!</p>
+
+</article>
+
+<div class="footer">
+<p>翻译自 <a href="https://smcleod.net/2026/02/patching-nvidias-driver-and-vllm-to-enable-p2p-on-consumer-gpus/">smcleod.net</a> / 原作者 Sam McLeod / 2026-02-25</p>
+</div>
+
+<script>
+document.addEventListener(&#39;scroll&#39;, function() {
+  var toggle = document.getElementById(&#39;toc-toggle&#39;);
+  if (window.scrollY > 100) {
+    toggle.style.opacity = &#39;1&#39;;
+  } else {
+    toggle.style.opacity = &#39;0.6&#39;;
+  }
+});
+</script>
+
+</body>
+</html>
