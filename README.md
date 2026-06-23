@@ -39,6 +39,12 @@
 | [从 305 GB 到 7.4 GB：大模型 KVCache 架构演进全景](从%20305%20GB%20到%207.4%20GB：大模型%20KVCache%20架构演进全景_v1.0.html) | 7.6 MB |
 | [Claude Code + 本地 LLM 的 KV Cache 复用失效问题排查](Claude%20Code%20+%20本地%20LLM%20的%20KV%20Cache%20复用失效问题排查全记录_v1.4.html) | 34 KB |
 
+### 📖 club-3090 项目
+
+| 文档 | 大小 |
+|------|------|
+| [Dual 3090 — 加入第二张卡会改变什么（中文翻译）](club3090-dual-card-翻译.html) | 406 KB |
+
 ### 📖 Lucebox Hub
 
 | 文档 | 大小 |
