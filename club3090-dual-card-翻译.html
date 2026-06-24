@@ -231,7 +231,7 @@ h2[id] { scroll-margin-top: 1rem; }
 <p>双卡 compose 的默认策略是 <strong>取 KV 池允许的最大上下文长度</strong>，同时将 <code>--max-num-seqs</code> 设为适度的上限（通常为 4）——而不是反过来。理由如下：</p>
 
 <ul>
-<li><strong><code>--max-num-seqs</strong> 是上限，不是预留。</strong>设为 4 并不会预留 4 倍上下文；它只是限制同时运行的请求数。短/中等请求仍然能装入共享 KV 池并发执行。</li>
+<li><strong><code>--max-num-seqs</code> 是上限，不是预留。</strong>设为 4 并不会预留 4 倍上下文；它只是限制同时运行的请求数。短/中等请求仍然能装入共享 KV 池并发执行。</li>
 <li><strong>KV 池大小由显存决定，而非 <code>--max-model-len</code>。</strong>拉高上下文上限 <strong>不会</strong> 缩小池（例如 <code>gemma-bf16-mtp</code> 的池是 196,527 tokens，不论 <code>--max-model-len</code> 是 32K 还是 131K 都一样）。因此更高的上限对典型流量而言<em>几乎零成本</em>——它只允许单个请求变得更大，并不影响短请求的并发。</li>
 <li><strong>双卡存在的意义就是解锁单卡做不到的事。</strong>2× 3090 的实际工作负载是一两个长上下文 agent，而非高 QPS 多租户。如果你要的是低上下文下的纯并发，单卡 compose 或副本是更合适的选择。</li>
 </ul>
