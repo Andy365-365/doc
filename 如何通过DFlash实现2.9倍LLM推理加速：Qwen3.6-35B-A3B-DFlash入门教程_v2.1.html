@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>如何通过DFlash实现2.9倍LLM推理加速：Qwen3.6-35B-A3B-DFlash入门教程</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    max-width: 860px; margin: 0 auto; padding: 40px 20px;
+    color: #222; line-height: 1.8; background: #fff;
+    padding-left: 50px;
+  }
+  h1 { text-align: center; margin-bottom: 6px; font-size: 24px; }
+  .meta-info { text-align: right; color: #999; font-size: 13px; margin-bottom: 30px; }
+  h2 { font-size: 20px; margin: 24px 0 12px; line-height: 1.4; }
+  h3 { font-size: 17px; margin: 20px 0 10px; }
+  h4 { font-size: 15px; margin: 16px 0 8px; }
+  h5 { font-size: 14px; margin: 14px 0 6px; }
+  .heading-anchor { visibility: hidden; }
+  h1:hover .heading-anchor, h2:hover .heading-anchor, h3:hover .heading-anchor, h4:hover .heading-anchor, h5:hover .heading-anchor { visibility: visible; }
+  p { margin: 12px 0; }
+  img { max-width: 100%; height: auto; display: block; margin: 16px auto; border-radius: 4px; }
+  .wide-image-wrapper img { max-width: none; }
+  /* Mermaid 图表和宽图：包裹在 .mermaid 的 div 横向可滚动 */
+  .mermaid { width: 100%; overflow-x: auto; margin: 16px 0; text-align: center; }
+  .mermaid svg { display: inline-block; }
+  figcaption, p[style*="text-align: center"] { text-align: center; color: #888; font-size: 13px; margin: 4px 0 16px; }
+  /* 代码块 */
+  pre { background: #1e1e1e; padding: 0; border-radius: 6px; overflow: auto; margin: 16px 0; font-size: 14px; line-height: 1.6; color: #d4d4d4; }
+  pre code { background: none; padding: 16px; display: block; color: inherit; font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace; overflow-x: auto; }
+  /* 代码块工具栏 */
+  .code-wrapper { margin: 16px 0; border-radius: 6px; overflow: hidden; background: #1e1e1e; }
+  .code-toolbar { display: flex; align-items: center; justify-content: space-between; padding: 6px 12px; background: #2d2d2d; border-bottom: 1px solid #3a3a3a; }
+  .code-lang { font-size: 12px; color: #999; font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace; text-transform: uppercase; }
+  .code-copy-btn { font-size: 12px; color: #ccc; background: transparent; border: 1px solid #555; border-radius: 4px; padding: 2px 10px; cursor: pointer; font-family: inherit; }
+  .code-copy-btn:hover { background: #3a3a3a; color: #fff; }
+  .code-content { overflow: auto; }
+  .code-content pre { margin: 0; border-radius: 0; background: transparent; padding: 0; }
+  code { background: #f0f0f0; padding: 2px 6px; border-radius: 3px; font-size: 14px; }
+  p > code, li > code, td > code, a > code, span > code { background: #e8e8e8; padding: 2px 6px; border-radius: 3px; font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace; font-size: 13.5px; color: #c7254e; border: 1px solid #d0d0d0; }
+  table { border-collapse: collapse; width: 100%; margin: 16px 0; font-size: 14px; }
+  th, td { border: 1px solid #ddd; padding: 8px 12px; text-align: left; }
+  th { background: #f6f6f6; font-weight: 600; font-size: 14px; }
+  tr:nth-child(even) { background: #fafafa; }
+  ul, ol { padding-left: 24px; margin: 12px 0; }
+  li { margin: 4px 0; }
+  blockquote { border-left: 4px solid #0066ff; padding: 8px 16px; margin: 16px 0; background: #f8f9fa; color: #555; }
+  hr { border: none; border-top: 1px solid #eee; margin: 24px 0; }
+  /* 目录面板 */
+  #toc-wrapper {
+    position: fixed; left: 0; top: 0; width: 280px; height: 100vh;
+    transform: translateX(0); transition: transform 0.3s ease; z-index: 9999;
+  }
+  #toc-wrapper.collapsed { transform: translateX(-100%); }
+  #toc {
+    position: absolute; top: 0; bottom: 0; width: 100%;
+    background: #f8f9fa; border-right: 1px solid #eee;
+    overflow-y: auto; padding: 20px 16px;
+  }
+  #toc-toggle {
+    position: absolute; right: -40px; top: 16px; width: 36px; height: 36px;
+    background: #222; color: #fff; border: none; border-radius: 0 4px 4px 0;
+    cursor: pointer; font-size: 18px; z-index: 10000;
+    display: flex; align-items: center; justify-content: center;
+  }
+  #toc-toggle:hover { background: #444; }
+  #toc ul { list-style: none; padding: 0; }
+  #toc li { margin: 3px 0; }
+  #toc a { color: #0066ff; text-decoration: none; font-size: 13px; display: block; padding: 2px 4px; border-radius: 3px; }
+  #toc a:hover { background: #e8f0fe; }
+  #sources { margin-top: 40px; padding-top: 20px; border-top: 2px solid #eee; color: #999; font-size: 13px; }
+  #sources h3 { font-size: 14px; margin-bottom: 8px; }
+  #sources ul { list-style: none; padding: 0; }
+  #sources li { margin: 2px 0; }
+  #sources a { color: #0066ff; text-decoration: none; }
+  #sources a:hover { text-decoration: underline; }
+  footer { margin-top: 20px; text-align: center; color: #ccc; font-size: 12px; }
+</style>
+</head>
+<body>
+
+<div id="toc-wrapper" class="collapsed">
+  <button id="toc-toggle" onclick="document.getElementById('toc-wrapper').classList.toggle('collapsed')">☰</button>
+  <nav id="toc">
+    <h3 style="margin:0 0 12px;font-size:15px;color:#222;line-height:1.4;">如何通过DFlash实现2.9倍LLM推理加速：Qwen3.6-35B-A3B-DFlash入门教程</h3>
+    <ul>
+
+    <li style="padding-left:16px;"><a href="#sec-1">如何通过DFlash实现2.9倍LLM推理加速：Qwen3.6-35B-A3B-DFlash入门教程</a></li>
+    <li style="padding-left:32px;"><a href="#sec-2">🚀 什么是DFlash技术？</a></li>
+    <li style="padding-left:32px;"><a href="#sec-3">📊 DFlash惊人的性能表现</a></li>
+    <li style="padding-left:32px;"><a href="#sec-4">🔧 DFlash系统架构解析</a></li>
+    <li style="padding-left:32px;"><a href="#sec-5">📦 快速安装指南</a></li>
+    <li style="padding-left:48px;"><a href="#sec-6">环境准备</a></li>
+    <li style="padding-left:48px;"><a href="#sec-7">vLLM安装</a></li>
+    <li style="padding-left:48px;"><a href="#sec-8">SGLang安装</a></li>
+    <li style="padding-left:32px;"><a href="#sec-9">🚀 启动DFlash加速服务</a></li>
+    <li style="padding-left:48px;"><a href="#sec-10">使用vLLM启动</a></li>
+    <li style="padding-left:48px;"><a href="#sec-11">使用SGLang启动</a></li>
+    <li style="padding-left:32px;"><a href="#sec-12">💻 使用DFlash加速的API调用</a></li>
+    <li style="padding-left:32px;"><a href="#sec-13">🔍 DFlash核心技术解析</a></li>
+    <li style="padding-left:48px;"><a href="#sec-14">块扩散机制</a></li>
+    <li style="padding-left:48px;"><a href="#sec-15">目标层选择</a></li>
+    <li style="padding-left:48px;"><a href="#sec-16">模型架构优化</a></li>
+    <li style="padding-left:32px;"><a href="#sec-17">🎯 性能优化技巧</a></li>
+    <li style="padding-left:48px;"><a href="#sec-18">选择合适的块大小</a></li>
+    <li style="padding-left:48px;"><a href="#sec-19">并发设置建议</a></li>
+    <li style="padding-left:48px;"><a href="#sec-20">内存优化</a></li>
+    <li style="padding-left:32px;"><a href="#sec-21">📈 实际应用场景</a></li>
+    <li style="padding-left:48px;"><a href="#sec-22">1. 代码生成任务</a></li>
+    <li style="padding-left:48px;"><a href="#sec-23">2. 数学推理任务</a></li>
+    <li style="padding-left:48px;"><a href="#sec-24">3. 对话系统</a></li>
+    <li style="padding-left:32px;"><a href="#sec-25">🔧 故障排除指南</a></li>
+    <li style="padding-left:48px;"><a href="#sec-26">常见问题</a></li>
+    <li style="padding-left:48px;"><a href="#sec-27">性能调优</a></li>
+    <li style="padding-left:32px;"><a href="#sec-28">🎉 开始你的DFlash加速之旅</a></li>
+    <li style="border-top:1px solid #ddd;margin-top:12px;padding-top:8px;"><a href="#sources" style="color:#999;font-size:12px;">来源</a></li>
+    </ul>
+  </nav>
+</div>
+
+<h1>如何通过DFlash实现2.9倍LLM推理加速：Qwen3.6-35B-A3B-DFlash入门教程</h1>
+<div class="meta-info"><span style="color:#888;">魏侃纯Zoe</span> &middot; 修改时间: 2026-06-01 09:28:14</div>
+
+
+
+                    <h2 id="sec-1"><a name="t0"></a>如何通过DFlash实现2.9倍LLM推理加速：<span class="words-blog hl-git-1" data-report-view="{&quot;spm&quot;:&quot;1001.2101.3001.10283&quot;,&quot;extra&quot;:&quot;{\&quot;words\&quot;:\&quot;Qwen3\&quot;,\&quot;isNewGitCodeAB\&quot;:1}&quot;}" data-tit="Qwen3" data-pretit="qwen3">Qwen3</span>.6-35B-A3B-DFlash入门教程<a href="#sec-1" class="heading-anchor" style="color: rgb(204, 204, 204); margin-left: 4px; text-decoration: none;"> #</a></h2> 
+<p> <a class="has-card" href="https://link.gitcode.com/i/6604ede729900fe89bf7400548f5d454?uuid_tt_dd=10_17312592020-1756778943379-885686&amp;isLogin=1&amp;from_id=151440011" title="【免费下载链接】Qwen3.6-35B-A3B-DFlash" rel="nofollow" data-card-index="0"> <span class="link-card-box" contenteditable="false"> <span class="link-title">【免费下载链接】Qwen3.6-35B-A3B-DFlash</span> <span class="link-desc"></span> <span class="link-link"> <img alt="【免费下载链接】Qwen3.6-35B-A3B-DFlash" class="link-link-icon" src="https://cdn-static.gitcode.com/Group427321440.svg"> 项目地址: https://ai.gitcode.com/hf_mirrors/z-lab/Qwen3.6-35B-A3B-DFlash </span> </span> </a> </p> 
+<p>想要让你的大型<span class="words-blog hl-git-1" data-report-view="{&quot;spm&quot;:&quot;1001.2101.3001.10283&quot;,&quot;extra&quot;:&quot;{\&quot;words\&quot;:\&quot;语言模型\&quot;,\&quot;isNewGitCodeAB\&quot;:1}&quot;}" data-tit="语言模型" data-pretit="语言模型">语言模型</span>推理速度提升2.9倍吗？🤔 今天我来为你介绍一个革命性的技术——DFlash（块扩散推测解码），它能够显著提升Qwen3.6-35B-A3B等大型语言模型的推理速度。这篇完整的入门教程将带你一步步了解DFlash的工作原理，并教你如何在vLLM和SGLang上快速部署这个强大的加速方案。</p> 
+<h3 id="sec-2"><a name="t1"></a>🚀 什么是DFlash技术？<a href="#sec-2" class="heading-anchor" style="color: rgb(204, 204, 204); margin-left: 4px; text-decoration: none;"> #</a></h3> 
+<p>DFlash是一种创新的<strong>推测解码</strong>方法，它采用轻量级的<strong>块扩散模型</strong>来并行生成多个候选标记。这种方法的核心思想是使用一个小型的草稿模型来预测后续的多个标记，然后由主模型进行验证和接受，从而大幅减少自回归推理的步骤。</p> 
+<p>想象一下，传统的语言模型生成文本就像一个人一个字一个字地写文章，而DFlash技术就像是让一个助手先草拟一整段内容，然后由主审快速检查和修正。这种方式可以<strong>将推理速度提升高达2.9倍</strong>！</p> 
+<h3 id="sec-3"><a name="t2"></a>📊 DFlash惊人的性能表现<a href="#sec-3" class="heading-anchor" style="color: rgb(204, 204, 204); margin-left: 4px; text-decoration: none;"> #</a></h3> 
+<p>让我们看看实际的测试数据，DFlash在不同任务上都展现了卓越的加速效果：</p> 
+<p><a href="https://link.gitcode.com/i/2d6dfa5c8074b2519403278e436290c2" rel="nofollow"><img src="https://raw.gitcode.com/hf_mirrors/z-lab/Qwen3.6-35B-A3B-DFlash/raw/42d3b34d588423cdae7ba8f53a8cf7789346a719/assets/speedup.png?utm_source=gitcode_repo_files" alt="DFlash加速效果对比"></a></p> 
+<p><strong>在单并发场景下（Concurrency=1）：</strong></p> 
+<ul><li>Math500任务：从234 tokens/sec提升到<strong>682 tokens/sec（2.9倍加速）</strong> 🚀</li><li>GSM8K任务：从235 tokens/sec提升到<strong>556 tokens/sec（2.4倍加速）</strong></li><li>HumanEval任务：从238 tokens/sec提升到<strong>603 tokens/sec（2.5倍加速）</strong></li></ul> 
+<p><strong>在高并发场景下（Concurrency=32）：</strong></p> 
+<ul><li>Math500任务：从2755 tokens/sec提升到<strong>6520 tokens/sec（2.4倍加速）</strong></li><li>GSM8K任务：从2699 tokens/sec提升到<strong>5239 tokens/sec（1.9倍加速）</strong></li></ul> 
+<h3 id="sec-4"><a name="t3"></a>🔧 DFlash系统架构解析<a href="#sec-4" class="heading-anchor" style="color: rgb(204, 204, 204); margin-left: 4px; text-decoration: none;"> #</a></h3> 
+<p><a href="https://link.gitcode.com/i/2d6dfa5c8074b2519403278e436290c2" rel="nofollow"><img src="https://raw.gitcode.com/hf_mirrors/z-lab/Qwen3.6-35B-A3B-DFlash/raw/42d3b34d588423cdae7ba8f53a8cf7789346a719/assets/dflash_system.png?utm_source=gitcode_repo_files" alt="DFlash系统架构"></a></p> 
+<p>DFlash的系统架构非常巧妙。它包含以下几个关键组件：</p> 
+<ol><li><strong>主模型</strong>：Qwen3.6-35B-A3B，负责最终的文本生成和验证</li><li><strong>草稿模型</strong>：Qwen3.6-35B-A3B-DFlash，轻量级的块扩散模型</li><li><strong>推测解码引擎</strong>：并行生成多个候选标记</li><li><strong>验证机制</strong>：确保生成的文本质量不受影响</li></ol> 
+<h3 id="sec-5"><a name="t4"></a>📦 快速安装指南<a href="#sec-5" class="heading-anchor" style="color: rgb(204, 204, 204); margin-left: 4px; text-decoration: none;"> #</a></h3> 
+<h4 id="sec-6"><a name="t5"></a>环境准备<a href="#sec-6" class="heading-anchor" style="color: rgb(204, 204, 204); margin-left: 4px; text-decoration: none;"> #</a></h4> 
+<p>首先，你需要安装必要的依赖。DFlash支持两种流行的推理框架：<span class="words-blog hl-git-1" data-report-view="{&quot;spm&quot;:&quot;1001.2101.3001.10283&quot;,&quot;extra&quot;:&quot;{\&quot;words\&quot;:\&quot;vLLM\&quot;,\&quot;isNewGitCodeAB\&quot;:1}&quot;}" data-tit="vLLM" data-pretit="vllm">vLLM</span>和SGLang。</p> 
+<h4 id="sec-7"><a name="t6"></a>vLLM安装<a href="#sec-7" class="heading-anchor" style="color: rgb(204, 204, 204); margin-left: 4px; text-decoration: none;"> #</a></h4> 
+<div class="code-wrapper"><div class="code-toolbar"><span class="code-lang">code</span><button class="code-copy-btn" type="button">📋 复制</button></div><div class="code-content"><pre><code>uv pip install vllm
+uv pip install -U --torch-backend=auto "vllm @ git+https://github.com/vllm-project/vllm.git@refs/pull/40898/head"
+</code></pre></div></div> 
+<h4 id="sec-8"><a name="t7"></a><span class="words-blog hl-git-1" data-report-view="{&quot;spm&quot;:&quot;1001.2101.3001.10283&quot;,&quot;extra&quot;:&quot;{\&quot;words\&quot;:\&quot;SGLang\&quot;,\&quot;isNewGitCodeAB\&quot;:1}&quot;}" data-tit="SGLang" data-pretit="sglang">SGLang</span>安装<a href="#sec-8" class="heading-anchor" style="color: rgb(204, 204, 204); margin-left: 4px; text-decoration: none;"> #</a></h4> 
+<div class="code-wrapper"><div class="code-toolbar"><span class="code-lang">code</span><button class="code-copy-btn" type="button">📋 复制</button></div><div class="code-content"><pre><code>uv pip install "git+https://github.com/sgl-project/sglang.git@refs/pull/20547/head#subdirectory=python"
+</code></pre></div></div> 
+<h3 id="sec-9"><a name="t8"></a>🚀 启动DFlash加速服务<a href="#sec-9" class="heading-anchor" style="color: rgb(204, 204, 204); margin-left: 4px; text-decoration: none;"> #</a></h3> 
+<h4 id="sec-10"><a name="t9"></a>使用vLLM启动<a href="#sec-10" class="heading-anchor" style="color: rgb(204, 204, 204); margin-left: 4px; text-decoration: none;"> #</a></h4> 
+<div class="code-wrapper"><div class="code-toolbar"><span class="code-lang">code</span><button class="code-copy-btn" type="button">📋 复制</button></div><div class="code-content"><pre><code>vllm serve Qwen/Qwen3.6-35B-A3B \
+  --speculative-config '{"method": "dflash", "model": "z-lab/Qwen3.6-35B-A3B-DFlash", "num_speculative_tokens": 15}' \
+  --attention-backend flash_attn \
+  --max-num-batched-tokens 32768
+</code></pre></div></div> 
+<h4 id="sec-11"><a name="t10"></a>使用SGLang启动<a href="#sec-11" class="heading-anchor" style="color: rgb(204, 204, 204); margin-left: 4px; text-decoration: none;"> #</a></h4> 
+<div class="code-wrapper"><div class="code-toolbar"><span class="code-lang">code</span><button class="code-copy-btn" type="button">📋 复制</button></div><div class="code-content"><pre><code>python -m sglang.launch_server \
+    --model-path Qwen/Qwen3.6-35B-A3B \
+    --speculative-algorithm DFLASH \
+    --speculative-draft-model-path z-lab/Qwen3.6-35B-A3B-DFlash \
+    --speculative-num-draft-tokens 16 \
+    --tp-size 1 \
+    --attention-backend fa3 \
+    --mem-fraction-static 0.75 \
+    --mamba-scheduler-strategy extra_buffer \
+    --trust-remote-code
+</code></pre></div></div> 
+<p>💡 <strong>专业提示</strong>：对于长上下文或代理工作负载，可以添加<code>--speculative-dflash-draft-window-size WINDOW_SIZE</code>参数来启用草稿模型的滑动窗口注意力机制。</p> 
+<h3 id="sec-12"><a name="t11"></a>💻 使用DFlash加速的API调用<a href="#sec-12" class="heading-anchor" style="color: rgb(204, 204, 204); margin-left: 4px; text-decoration: none;"> #</a></h3> 
+<p>安装并启动服务后，你可以像使用普通OpenAI API一样调用加速后的模型：</p> 
+<div class="code-wrapper"><div class="code-toolbar"><span class="code-lang">code</span><button class="code-copy-btn" type="button">📋 复制</button></div><div class="code-content"><pre><code>from openai import OpenAI
+ 
+client = OpenAI(base_url="http://localhost:30000/v1", api_key="EMPTY")
+ 
+response = client.chat.completions.create(
+    model="Qwen/Qwen3.6-35B-A3B",
+    messages=[{"role": "user", "content": "写一个Python快速排序算法"}],
+    max_tokens=4096,
+    temperature=0.0
+)
+print(response.choices[0].message.content)
+</code></pre></div></div> 
+<h3 id="sec-13"><a name="t12"></a>🔍 DFlash核心技术解析<a href="#sec-13" class="heading-anchor" style="color: rgb(204, 204, 204); margin-left: 4px; text-decoration: none;"> #</a></h3> 
+<h4 id="sec-14"><a name="t13"></a>块扩散机制<a href="#sec-14" class="heading-anchor" style="color: rgb(204, 204, 204); margin-left: 4px; text-decoration: none;"> #</a></h4> 
+<p>DFlash的核心创新在于<strong>块扩散模型</strong>。与传统的逐标记生成不同，DFlash可以一次性生成一个完整的标记块（block）。在<a href="https://link.gitcode.com/i/cc1fdb8af08d2e0f6d99cbd3f1e83423" rel="nofollow">config.json</a>中，你可以看到<code>block_size</code>被设置为16，这意味着DFlash可以并行生成最多16个标记。</p> 
+<h4 id="sec-15"><a name="t14"></a>目标层选择<a href="#sec-15" class="heading-anchor" style="color: rgb(204, 204, 204); margin-left: 4px; text-decoration: none;"> #</a></h4> 
+<p>DFlash通过选择特定的目标层来优化性能。在配置文件中，<code>target_layer_ids</code>设置为<code>[1, 10, 19, 28, 37]</code>，这些层被精心选择以最大化加速效果。</p> 
+<h4 id="sec-16"><a name="t15"></a>模型架构优化<a href="#sec-16" class="heading-anchor" style="color: rgb(204, 204, 204); margin-left: 4px; text-decoration: none;"> #</a></h4> 
+<p>DFlash草稿模型采用了精简的架构，只有8个隐藏层（相比主模型的40层），这使得它非常轻量且高效。你可以在<a href="https://link.gitcode.com/i/fec909426b01a3e4b0827b11ca512134" rel="nofollow">dflash.py</a>中查看完整的实现细节。</p> 
+<h3 id="sec-17"><a name="t16"></a>🎯 性能优化技巧<a href="#sec-17" class="heading-anchor" style="color: rgb(204, 204, 204); margin-left: 4px; text-decoration: none;"> #</a></h3> 
+<h4 id="sec-18"><a name="t17"></a>选择合适的块大小<a href="#sec-18" class="heading-anchor" style="color: rgb(204, 204, 204); margin-left: 4px; text-decoration: none;"> #</a></h4> 
+<p>DFlash支持不同的块大小配置。根据我们的测试：</p> 
+<ul><li><strong>块大小16</strong>：在Math500任务上达到最高2.9倍加速</li><li><strong>块大小8</strong>：在某些任务上表现更稳定</li></ul> 
+<h4 id="sec-19"><a name="t18"></a>并发设置建议<a href="#sec-19" class="heading-anchor" style="color: rgb(204, 204, 204); margin-left: 4px; text-decoration: none;"> #</a></h4> 
+<ul><li><strong>低并发场景</strong>（1-8）：DFlash加速效果最明显，可达2.9倍</li><li><strong>高并发场景</strong>（16-32）：加速效果仍然显著，维持在1.4-2.5倍</li></ul> 
+<h4 id="sec-20"><a name="t19"></a>内存优化<a href="#sec-20" class="heading-anchor" style="color: rgb(204, 204, 204); margin-left: 4px; text-decoration: none;"> #</a></h4> 
+<p>使用<code>--mem-fraction-static 0.75</code>参数可以优化内存使用，确保在有限显存下也能获得良好的性能。</p> 
+<h3 id="sec-21"><a name="t20"></a>📈 实际应用场景<a href="#sec-21" class="heading-anchor" style="color: rgb(204, 204, 204); margin-left: 4px; text-decoration: none;"> #</a></h3> 
+<h4 id="sec-22"><a name="t21"></a>1. 代码生成任务<a href="#sec-22" class="heading-anchor" style="color: rgb(204, 204, 204); margin-left: 4px; text-decoration: none;"> #</a></h4> 
+<p>DFlash在HumanEval代码生成任务上表现出色，加速比达到2.5倍，特别适合开发者和代码助手应用。</p> 
+<h4 id="sec-23"><a name="t22"></a>2. 数学推理任务<a href="#sec-23" class="heading-anchor" style="color: rgb(204, 204, 204); margin-left: 4px; text-decoration: none;"> #</a></h4> 
+<p>在Math500和GSM8K等数学推理任务上，DFlash分别实现了2.9倍和2.4倍的加速，非常适合教育和技术应用。</p> 
+<h4 id="sec-24"><a name="t23"></a>3. 对话系统<a href="#sec-24" class="heading-anchor" style="color: rgb(204, 204, 204); margin-left: 4px; text-decoration: none;"> #</a></h4> 
+<p>对于MT-Bench和Alpaca对话任务，DFlash也能提供1.5-1.9倍的稳定加速，提升聊天机器人的响应速度。</p> 
+<h3 id="sec-25"><a name="t24"></a>🔧 故障排除指南<a href="#sec-25" class="heading-anchor" style="color: rgb(204, 204, 204); margin-left: 4px; text-decoration: none;"> #</a></h3> 
+<h4 id="sec-26"><a name="t25"></a>常见问题<a href="#sec-26" class="heading-anchor" style="color: rgb(204, 204, 204); margin-left: 4px; text-decoration: none;"> #</a></h4> 
+<ol><li><strong>安装失败</strong>：确保使用正确的Python版本和依赖</li><li><strong>内存不足</strong>：调整<code>--max-num-batched-tokens</code>参数</li><li><strong>性能不理想</strong>：检查块大小和并发设置</li></ol> 
+<h4 id="sec-27"><a name="t26"></a>性能调优<a href="#sec-27" class="heading-anchor" style="color: rgb(204, 204, 204); margin-left: 4px; text-decoration: none;"> #</a></h4> 
+<p>如果遇到性能问题，可以尝试：</p> 
+<ul><li>调整<code>num_speculative_tokens</code>参数</li><li>使用不同的注意力后端（flash_attn或fa3）</li><li>优化批处理大小</li></ul> 
+<h3 id="sec-28"><a name="t27"></a>🎉 开始你的DFlash加速之旅<a href="#sec-28" class="heading-anchor" style="color: rgb(204, 204, 204); margin-left: 4px; text-decoration: none;"> #</a></h3> 
+<p>现在你已经掌握了DFlash的所有关键知识！🎯 这个强大的推测解码技术可以让你在保持文本质量的同时，大幅提升大型语言模型的推理速度。</p> 
+<p>无论你是开发者、研究者还是企业用户，DFlash都能为你的AI应用带来显著的性能提升。立即尝试在vLLM或SGLang上部署Qwen3.6-35B-A3B-DFlash，体验2.9倍的推理加速！</p> 
+<p>记住，技术细节和配置文件都可以在项目的<a href="https://link.gitcode.com/i/fec909426b01a3e4b0827b11ca512134" rel="nofollow">dflash.py</a>和<a href="https://link.gitcode.com/i/cc1fdb8af08d2e0f6d99cbd3f1e83423" rel="nofollow">config.json</a>中找到。祝你加速成功！✨</p> 
+<p> <a class="has-card" href="https://link.gitcode.com/i/ea045c9ee02a0fb417a3d1e028990f8e?uuid_tt_dd=10_17312592020-1756778943379-885686&amp;isLogin=1&amp;from_id=151440011" title="【免费下载链接】Qwen3.6-35B-A3B-DFlash" rel="nofollow" data-card-index="1"> <span class="link-card-box" contenteditable="false"> <span class="link-title">【免费下载链接】Qwen3.6-35B-A3B-DFlash</span> <span class="link-desc"></span> <span class="link-link"> <img alt="【免费下载链接】Qwen3.6-35B-A3B-DFlash" class="link-link-icon" src="https://cdn-static.gitcode.com/Group427321440.svg"> 项目地址: https://ai.gitcode.com/hf_mirrors/z-lab/Qwen3.6-35B-A3B-DFlash </span> </span> </a> </p>
+                
+
+<div id="sources">
+  <h3>来源</h3>
+  <ul>
+    <li><a href="https://blog.csdn.net/gitblog_00281/article/details/151440011" target="_blank">如何通过DFlash实现2.9倍LLM推理加速：Qwen3.6-35B-A3B-DFlash入门教程</a></li>
+  </ul>
+</div>
+
+<footer>
+  <p>由「CSDN 单篇文章保存」脚本自动生成 &middot; 2026/6/23</p>
+</footer>
+
+<script>
+(function() {
+  function copyCode(btn) {
+    var wrapper = btn.closest('.code-wrapper');
+    var codeEl = wrapper.querySelector('pre code');
+    var text = codeEl.textContent;
+    var ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.left = '-9999px';
+    ta.style.top = '0';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.focus();
+    ta.select();
+    try {
+      document.execCommand('copy');
+      var orig = btn.textContent;
+      btn.textContent = '✅ 已复制';
+      setTimeout(function() { btn.textContent = orig; }, 2000);
+    } catch(e) {
+      btn.textContent = '❌ 复制失败';
+      setTimeout(function() { btn.textContent = '📋 复制'; }, 2000);
+    }
+    document.body.removeChild(ta);
+  }
+  document.querySelectorAll('.code-copy-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() { copyCode(this); });
+  });
+})();
+</script>
+</body>
+</html>

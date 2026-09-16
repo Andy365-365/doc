@@ -38,6 +38,7 @@
 | [llama.cpp 检查点修复加速本地编码 Agent](llamacpp-checkpoint-fix-speeds-local-coding-agents-v019.html) | 76 KB |
 | [从 305 GB 到 7.4 GB：大模型 KVCache 架构演进全景](从%20305%20GB%20到%207.4%20GB：大模型%20KVCache%20架构演进全景_v1.0.html) | 7.6 MB |
 | [Claude Code + 本地 LLM 的 KV Cache 复用失效问题排查](Claude%20Code%20+%20本地%20LLM%20的%20KV%20Cache%20复用失效问题排查全记录_v1.4.html) | 34 KB |
+| [3090 Ti 上的 FP8：消费级 GPU 上真正能用的路径](fp8-on-rtx-3090-ti-翻译.html) | 22 KB |
 
 ### 📖 club-3090 项目
 
