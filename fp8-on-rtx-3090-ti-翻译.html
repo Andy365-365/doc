@@ -7,16 +7,16 @@
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Source+Code+Pro:wght@400;500&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #0d0d0d;
-    --surface: #1a1a1a;
-    --border: #2a2a2a;
-    --text: #e8e8ed;
-    --text-muted: #888;
-    --accent: #f5c842;
-    --code-bg: #141414;
-    --link: #7eb8f5;
-    --green: #3fb950;
-    --badge-bg: #090909;
+    --bg: #f5f5f5;
+    --surface: #ffffff;
+    --border: #e0e0e0;
+    --text: #1a1a1a;
+    --text-muted: #666;
+    --accent: #b8860b;
+    --code-bg: #f0f0f0;
+    --link: #2563eb;
+    --green: #1a7f37;
+    --badge-bg: #fafafa;
   }
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body {
@@ -47,14 +47,14 @@
   }
   th, td {
     padding: 0.55rem 0.75rem;
-    border: 1px solid rgba(245, 200, 66, 0.2);
+    border: 1px solid #e0e0e0;
     text-align: left;
     vertical-align: top;
   }
   th {
-    background: #222;
+    background: #fafafa;
     font-weight: 600;
-    color: var(--accent);
+    color: #1a1a1a;
     text-align: center;
   }
   code {
@@ -63,7 +63,7 @@
     border-radius: 4px;
     font-size: 0.88em;
     font-family: "IBM Plex Mono", "Source Code Pro", "Cascadia Code", Consolas, monospace;
-    color: #f0883e;
+    color: #c2410c;
   }
   pre {
     background: #1e1e2e;
@@ -88,7 +88,7 @@
     border-left: 3px solid var(--accent);
     padding: 0.5rem 1rem;
     margin: 1rem 0;
-    background: rgba(245, 200, 66, 0.05);
+    background: rgba(184, 134, 11, 0.08);
     border-radius: 0 6px 6px 0;
   }
   .meta { color: var(--text-muted); font-size: 0.9rem; margin-top: 0.8rem; }
@@ -132,7 +132,7 @@
   display: block;
   width: 18px;
   height: 2px;
-  background: #f5c842;
+  background: #b8860b;
   border-radius: 1px;
   transition: transform 0.3s, opacity 0.3s;
 }
@@ -145,29 +145,29 @@
   left: -320px;
   width: 300px;
   height: 100vh;
-  background: #111;
-  border-right: 1px solid #2a2a2a;
+  background: #ffffff;
+  border-right: 1px solid #e0e0e0;
   z-index: 1000;
   padding: 4.5rem 1.2rem 1.5rem;
   overflow-y: auto;
   transition: left 0.3s ease;
 }
-#toc-nav.open { left: 0; box-shadow: 4px 0 20px rgba(0,0,0,0.5); }
+#toc-nav.open { left: 0; box-shadow: 4px 0 20px rgba(0,0,0,0.15); }
 .toc-header {
   font-size: 0.8rem;
   text-transform: uppercase;
   letter-spacing: 0.1em;
-  color: #888;
+  color: #666;
   margin-bottom: 1rem;
   padding-bottom: 0.5rem;
-  border-bottom: 1px solid #2a2a2a;
+  border-bottom: 1px solid #e0e0e0;
 }
 #toc-nav ul { list-style: none; margin: 0; padding: 0; }
 #toc-nav li { margin: 0; }
 .toc-link {
   display: block;
   padding: 0.45rem 0.75rem;
-  color: #c0c0c5;
+  color: #444;
   text-decoration: none;
   font-size: 0.9rem;
   border-radius: 4px;
@@ -177,9 +177,9 @@
   word-break: break-word;
 }
 .toc-link:hover {
-  background: rgba(245, 200, 66, 0.08);
-  color: #f5c842;
-  border-left-color: #f5c842;
+  background: rgba(184, 134, 11, 0.1);
+  color: #b8860b;
+  border-left-color: #b8860b;
 }
 </style>
 </head>
